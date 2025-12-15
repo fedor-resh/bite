@@ -53,7 +53,8 @@ export function FoodItem({ item, index, onItemClick }: FoodItemProps) {
 							<>
 								<Badge variant="light" color="dark.1">
 									{item.value
-										? `${item.value} г` + (totalCallories ? ` (${totalCallories} к)` : "")
+										? `${item.value} г` +
+											(totalCallories ? ` (${totalCallories.toFixed(0)} к)` : "")
 										: "-"}
 								</Badge>
 								<Badge variant="light" color="orange.9">
