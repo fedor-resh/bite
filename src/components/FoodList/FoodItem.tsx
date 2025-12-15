@@ -26,6 +26,10 @@ export function FoodItem({ item, index, onItemClick }: FoodItemProps) {
 		}
 	}, []);
 
+	const { value, kcalories, protein } = item;
+
+	const totalCallories = value && kcalories ? (value * kcalories) / 100 : 0;
+
 	return (
 		<Paper
 			p="sm"
@@ -48,7 +52,9 @@ export function FoodItem({ item, index, onItemClick }: FoodItemProps) {
 						) : (
 							<>
 								<Badge variant="light" color="dark.1">
-									{item.value ? `${item.value} г` : "-"}
+									{item.value
+										? `${item.value} г` + (totalCallories ? ` (${totalCallories} к)` : "")
+										: "-"}
 								</Badge>
 								<Badge variant="light" color="orange.9">
 									{item.kcalories ? `${item.kcalories} к` : "-"}
