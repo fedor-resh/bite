@@ -57,14 +57,14 @@ export function ProfilePage() {
 			<Stack gap="xl">
 				<Title order={1}>Профиль</Title>
 
-				<Paper p="xl" radius="md" withBorder>
-					<Stack align="center" gap="md">
-						<Avatar src={avatarUrl} alt={displayName} name={displayName} radius="xl" size={120} />
-						<Stack align="center" gap="xs">
+				<Paper p="xs" radius="md" withBorder>
+					<Group align="center" justify="flex-start" gap="xl">
+						<Avatar src={avatarUrl} alt={displayName} name={displayName} radius="xl" size={50} />
+						<Group align="center" gap="xl">
 							<Title order={3}>{displayName}</Title>
 							{email && <Text c="dimmed">{email}</Text>}
-						</Stack>
-					</Stack>
+						</Group>
+					</Group>
 				</Paper>
 
 				{userGoals && (
