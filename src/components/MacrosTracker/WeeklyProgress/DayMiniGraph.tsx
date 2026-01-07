@@ -1,6 +1,7 @@
 import { ActionIcon, Box, RingProgress, Stack, Text } from "@mantine/core";
 import { getFormattedDate } from "@/utils/dateUtils";
 import type { DayProgress } from "./types";
+import { useMediaQuery } from "@mantine/hooks";
 
 export function DayMiniGraph({
 	day,
@@ -92,12 +93,14 @@ export function DayMiniGraph({
 		</Stack>
 	);
 
+	const isSmall = useMediaQuery("(max-width: 360px)");
+
 	return (
 		<ActionIcon
 			variant={isActive ? "light" : "transparent"}
 			radius="md"
-			size="xl"
-			py={30}
+			size={isSmall ? "lg" : "xl"}
+            py= {30}
 			onClick={onClick}
 			bd={isToday && !isActive ? "2px solid rgba(216, 101, 39, 0.2)" : "2px solid transparent"}
 		>

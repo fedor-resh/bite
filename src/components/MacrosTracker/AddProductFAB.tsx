@@ -71,16 +71,6 @@ export function AddProductFAB() {
 					zIndex: 3,
 				}}
 			>
-				<TextInput
-					readOnly
-					placeholder="Поиск продуктов..."
-					onClick={navigateToSearch}
-					onFocus={navigateToSearch}
-					leftSection={<IconSearch size={20} />}
-					size="lg"
-					style={{ flex: 1, viewTransitionName: "search-input" }}
-				/>
-
 				<Paper>
 					<ActionIcon
 						size={50}
@@ -92,6 +82,16 @@ export function AddProductFAB() {
 						<IconPlus size={24} stroke={2} />
 					</ActionIcon>
 				</Paper>
+				
+				<TextInput
+					readOnly
+					placeholder="Поиск продуктов..."
+					onClick={navigateToSearch}
+					onFocus={navigateToSearch}
+					leftSection={<IconSearch size={20} />}
+					size="lg"
+					style={{ flex: 1, viewTransitionName: "search-input" }}
+				/>
 
 				<Paper>
 					<ActionIcon
