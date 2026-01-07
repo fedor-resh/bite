@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Database } from "../types/database.types";
-import { supabase } from "../lib/supabase";
 import type { User } from "@/types/types";
+import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../stores/authStore";
+import type { Database } from "../types/database.types";
 
 // Query Keys
 export const userKeys = {
@@ -35,12 +35,12 @@ export function useSignUpMutation() {
 		}: {
 			email: string;
 			password: string;
-			name: string;
+			name?: string;
 		}) => {
 			const { data, error } = await supabase.auth.signUp({
 				email,
 				password,
-				options: { data: { name } },
+				options: name ? { data: { name } } : undefined,
 			});
 			if (error) {
 				throw error;

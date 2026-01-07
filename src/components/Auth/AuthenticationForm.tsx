@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
 	Anchor,
 	Button,
@@ -15,6 +13,8 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { upperFirst, useToggle } from "@mantine/hooks";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
 	useSignInMutation,
 	useSignInWithGoogleMutation,
@@ -45,7 +45,6 @@ export function AuthenticationForm(props: PaperProps) {
 	const form = useForm({
 		initialValues: {
 			email: "",
-			name: "",
 			password: "",
 			terms: true,
 		},
@@ -53,7 +52,7 @@ export function AuthenticationForm(props: PaperProps) {
 		validate: {
 			email: (val: string) => (/^\S+@\S+$/.test(val) ? null : "Invalid email"),
 			password: (val: string) =>
-				val.length <= 6 ? "Password should include at least 6 characters" : null,
+				val.length <= 8 ? "Password should include at least 8 characters" : null,
 		},
 	});
 
@@ -65,7 +64,6 @@ export function AuthenticationForm(props: PaperProps) {
 				{
 					email: values.email,
 					password: values.password,
-					name: values.name,
 				},
 				{
 					onSuccess: () => {
@@ -131,17 +129,6 @@ export function AuthenticationForm(props: PaperProps) {
 
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<Stack>
-					{type === "register" && (
-						<TextInput
-							label="Имя"
-							placeholder="Ваше имя"
-							value={form.values.name}
-							onChange={(event) => form.setFieldValue("name", event.currentTarget.value)}
-							radius="md"
-							disabled={loading}
-						/>
-					)}
-
 					<TextInput
 						required
 						label="Email"
