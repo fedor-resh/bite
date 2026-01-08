@@ -113,6 +113,10 @@ export default defineConfig({
 	},
 	server: {
 		port: 5173,
-		host: true,
+		host: '0.0.0.0', // Allow access from network devices
+		strictPort: false, // Try next available port if 5173 is in use
+		hmr: {
+			clientPort: 5173, // HMR client port (for WebSocket)
+		},
 	},
 });
