@@ -114,13 +114,13 @@ export function ProfilePage() {
 			<Stack gap="xl">
 				<Title order={1}>Профиль</Title>
 
-				<Paper p="xs" radius="md" withBorder>
-					<Group align="center" justify="flex-start" gap="xl">
+				<Paper p="xl" radius="md" withBorder>
+						<Group gap="md">
 						<Avatar src={avatarUrl} alt={displayName} name={displayName} radius="xl" size={50} />
-						<Group align="center" gap="xl">
-							<Title order={3}>{displayName}</Title>
+						<Stack gap={0}>
+							<Title order={4}>{displayName}</Title>
 							{email && <Text c="dimmed">{email}</Text>}
-						</Group>
+						</Stack>
 					</Group>
 				</Paper>
 
