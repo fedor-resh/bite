@@ -1,24 +1,39 @@
-import { IconLogout } from "@tabler/icons-react";
-import { useNavigate } from "react-router-dom";
-import { Avatar, Button, Container, Group, Paper, Space, Stack, Text, Title } from "@mantine/core";
+import {
+	ActionIcon,
+	Avatar,
+	Button,
+	Card,
+	Center,
+	Container,
+	Group,
+	Paper,
+	Space,
+	Stack,
+	Text,
+	Title,
+} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useGetUserGoalsQuery, useUpdateUserGoalsMutation } from "../api/userQueries";
+import { IconChevronLeft, IconChevronRight, IconLogout } from "@tabler/icons-react";
+import dayjs from "dayjs";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGetWeeklyFoodsQuery } from "../api/foodQueries";
+import { useGetUserGoalsQuery, useUpdateUserGoalsMutation } from "../api/userQueries";
 import { CalorieCalculator } from "../components/Profile/CalorieCalculator";
 import { useAuthStore } from "../stores/authStore";
-import type { FoodItemType } from "../components/FoodList";
+import "dayjs/locale/ru";
+import { DatePickerInput } from "@mantine/dates";
+import { IconCalendar } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import isBetween from "dayjs/plugin/isBetween";
+import isoWeek from "dayjs/plugin/isoWeek";
+import { supabase } from "../lib/supabase";
+import type { EatenProduct } from "../types/types";
 import { getFormattedDate } from "../utils/dateUtils";
 
-import {useState, useMemo} from 'react';
-import { IconChevronLeft, IconChevronRight} from '@tabler/icons-react';
-import { ActionIcon, Card, Center } from '@mantine/core';
-import dayjs from 'dayjs';
-import 'dayjs/locale/ru';
-import isoWeek from 'dayjs/plugin/isoWeek';
-import isBetween from 'dayjs/plugin/isBetween';
 dayjs.extend(isBetween);
 dayjs.extend(isoWeek);
-dayjs.locale('ru');
+dayjs.locale("ru");
 
 export function ProfilePage() {
 	const navigate = useNavigate();
@@ -67,16 +82,17 @@ export function ProfilePage() {
 	};
 
 	const [currentDate, setCurrentDate] = useState(dayjs());
-	const currentDateString = currentDate.format('YYYY-MM-DD');
+
+	const currentDateString = currentDate.format("YYYY-MM-DD");
 	const { data: weeklyFoods = [] } = useGetWeeklyFoodsQuery(currentDateString);
-	
+
 	const meanCalories = useMemo(() => {
-		const startOfWeek = currentDate.isoWeekday(1).startOf('day');
-		const endOfWeek = currentDate.isoWeekday(7).endOf('day');
+		const startOfWeek = currentDate.isoWeekday(1).startOf("day");
+		const endOfWeek = currentDate.isoWeekday(7).endOf("day");
 
 		// Фильтруем записи за выбранную неделю
-		const weekEntries = weeklyFoods.filter(e =>
-			e.date && dayjs(e.date).isBetween(startOfWeek, endOfWeek, 'day', '[]')
+		const weekEntries = weeklyFoods.filter(
+			(e) => e.date && dayjs(e.date).isBetween(startOfWeek, endOfWeek, "day", "[]"),
 		);
 
 		// Рассчитываем общее количество калорий за неделю
@@ -88,26 +104,111 @@ export function ProfilePage() {
 		}, 0);
 
 		// Получаем уникальные дни недели с записями
-		const uniqueDays = new Set(weekEntries.map(e => e.date).filter(Boolean));
-		
+		const uniqueDays = new Set(weekEntries.map((e) => e.date).filter(Boolean));
+
 		// Среднее количество калорий в день за неделю
-		const dailyCaloriesPerWeek = uniqueDays.size > 0 
-			? totalCaloriesPerWeek / uniqueDays.size 
-			: 0;
+		const dailyCaloriesPerWeek = uniqueDays.size > 0 ? totalCaloriesPerWeek / uniqueDays.size : 0;
 
 		return Math.round(dailyCaloriesPerWeek);
 	}, [currentDate, weeklyFoods]);
 
-
-
-	
 	const handlePrevWeek = () => {
-		setCurrentDate((prev) => prev.clone().subtract(1, 'week'))
-	}
+		setCurrentDate((prev) => prev.clone().subtract(1, "week"));
+	};
 
 	const handleNextWeek = () => {
-		setCurrentDate((prev) => prev.clone().add(1, 'week'))
+		setCurrentDate((prev) => prev.clone().add(1, "week"));
+	};
+
+	const [datesFromTo, setDatesFromTo] = useState<[Date | null, Date | null]>([null, null]);
+
+	const handleDateRangeChange = (value: [string | null, string | null] | null) => {
+		if (!value) {
+			setDatesFromTo([null, null]);
+			return;
+		}
+		const [fromStr, toStr] = value;
+		setDatesFromTo([fromStr ? new Date(fromStr) : null, toStr ? new Date(toStr) : null]);
+	};
+
+	const foodKeys = {
+		all: ["foods"] as const,
+		foodsInRange: (from: string | null, to: string | null) => ["foods", "range", from, to] as const,
+		products: (query: string) => ["products", query] as const,
+	};
+
+	function useGetFoodsInRangeQuery(from: Date | null, to: Date | null) {
+		const fromStr = from ? getFormattedDate(from) : null;
+		const toStr = to ? getFormattedDate(to) : null;
+
+		const userId = useAuthStore((state) => state.user?.id);
+
+		const hasRange = Boolean(from && to);
+
+		return useQuery({
+			queryKey: foodKeys.foodsInRange(fromStr, toStr),
+			queryFn: async () => {
+				if (!userId) {
+					throw new Error("User is not authenticated");
+				}
+				if (!from || !to || !fromStr || !toStr) {
+					return [] as EatenProduct[];
+				}
+
+				const { data, error } = await supabase
+					.from("eaten_products")
+					.select("*")
+					.eq("userId", userId)
+					.gte("date", fromStr) // >= from
+					.lte("date", toStr) // <= to
+					.order("createdAt", { ascending: false });
+
+				if (error) {
+					throw error;
+				}
+
+				return data as EatenProduct[];
+			},
+			enabled: !!userId && hasRange,
+		});
 	}
+
+	const [from, to] = datesFromTo;
+	// const intervalDateString = from ? dayjs(from).format("YYYY-MM-DD") : null;
+	const { data: intervalFoods = [] } = useGetFoodsInRangeQuery(from, to);
+
+	const meanCaloriesInterval = useMemo(() => {
+		if (!from || !to) {
+			return 0;
+		}
+
+		const startDate = dayjs(from).startOf("day");
+		const endDate = dayjs(to).endOf("day");
+
+		// Фильтруем записи за выбранный интервал
+		const intervalEntries = intervalFoods.filter(
+			(e) => e.date && dayjs(e.date).isBetween(startDate, endDate, "day", "[]"),
+		);
+
+		// Рассчитываем общее количество калорий за интервал
+		// kcalories - калории на 100г, value - вес в граммах
+		const totalCaloriesPerInterval = intervalEntries.reduce((acc, el) => {
+			const kcalories = el.kcalories ?? 0;
+			const value = el.value ?? 0;
+			return acc + (kcalories * value) / 100;
+		}, 0);
+
+		// Получаем уникальные дни интервала с записями
+		const uniqueDays = new Set(intervalEntries.map((e) => e.date).filter(Boolean));
+
+		// Среднее количество калорий в день за интервал
+		const dailyCaloriesPerInterval =
+			uniqueDays.size > 0 ? totalCaloriesPerInterval / uniqueDays.size : 0;
+
+		return Math.round(dailyCaloriesPerInterval);
+	}, [from, to, intervalFoods]);
+
+	const today = dayjs();
 
 	return (
 		<Container size="sm" py="xl" px="0" my="0">
@@ -115,7 +216,7 @@ export function ProfilePage() {
 				<Title order={1}>Профиль</Title>
 
 				<Paper p="xl" radius="md" withBorder>
-						<Group gap="md">
+					<Group gap="md">
 						<Avatar src={avatarUrl} alt={displayName} name={displayName} radius="xl" size={50} />
 						<Stack gap={0}>
 							<Title order={4}>{displayName}</Title>
@@ -124,29 +225,105 @@ export function ProfilePage() {
 					</Group>
 				</Paper>
 
-				
-				
+				<Paper p="xl" radius="md" withBorder>
+					<Stack gap="md">
+						<Title order={4}>Cреднесуточная калорийность</Title>
+						<Card p="md" withBorder>
+							<Center>
+								<ActionIcon
+									variant="subtle"
+									c="dark.4"
+									size="md"
+									aria-label="Предыдущая неделя"
+									onClick={handlePrevWeek}
+								>
+									<IconChevronLeft size={18} />
+								</ActionIcon>
 
-    <Card p="md" withBorder>
-    <Center>
-	  <ActionIcon variant="default" size="lg" radius="md" onClick={handlePrevWeek}>
-        <IconChevronLeft color="var(--mantine-color-red-text)" />
-      </ActionIcon>
-      <Card withBorder shadow="sm" padding="lg" radius="md">
-        {currentDate.isoWeekday(1).startOf('day').format('D MMMM YYYY')} — {currentDate.isoWeekday(7).endOf('day').format('D MMMM YYYY')}
-      </Card>
-      <ActionIcon variant="default" size="lg" radius="md" onClick={handleNextWeek}>
-        <IconChevronRight color="var(--mantine-color-teal-text)" />
-      </ActionIcon>
-      </Center>
-      <Center>
-	  <Card >{meanCalories} ккал</Card>
-	  </Center>
-      </Card>
+								<Card withBorder shadow="sm" padding="sm" radius="md">
+									{currentDate.isoWeekday(1).startOf("day").format("DD.MM.YYYY")} —
+									{currentDate.isoWeekday(7).endOf("day").format("DD.MM.YYYY")}
+								</Card>
 
+								<ActionIcon
+									variant="subtle"
+									c="dark.4"
+									size="md"
+									aria-label="Следующая неделя"
+									onClick={handleNextWeek}
+								>
+									<IconChevronRight size={18} />
+								</ActionIcon>
+							</Center>
+							<Center>
+								<Card p="xs">{meanCalories} ккал</Card>
+							</Center>
+						</Card>
 
+						<Card p="md" withBorder>
+							<Center>
+								<DatePickerInput
+									clearable
+									value={datesFromTo}
+									onChange={handleDateRangeChange}
+									type="range"
+									leftSection={<IconCalendar size={18} stroke={1.5} />}
+									placeholder="Выберите интервал"
+									locale="ru"
+									valueFormat="DD.MM.YYYY"
+									presets={[
+										{
+											value: [
+												today.subtract(6, "day").format("YYYY-MM-DD"),
+												today.format("YYYY-MM-DD"),
+											],
+											label: "Последние 7 дней",
+										},
+										{
+											value: [
+												today.subtract(13, "day").format("YYYY-MM-DD"),
+												today.format("YYYY-MM-DD"),
+											],
+											label: "Последние 14 дней",
+										},
+										{
+											value: [
+												today.subtract(20, "day").format("YYYY-MM-DD"),
+												today.format("YYYY-MM-DD"),
+											],
+											label: "Последние 21 день",
+										},
+										{
+											value: [
+												today.subtract(27, "day").format("YYYY-MM-DD"),
+												today.format("YYYY-MM-DD"),
+											],
+											label: "Последние 28 дней",
+										},
+										{
+											value: [
+												today.startOf("month").format("YYYY-MM-DD"),
+												today.format("YYYY-MM-DD"),
+											],
+											label: "В этом месяце",
+										},
+										{
+											value: [
+												today.subtract(1, "month").startOf("month").format("YYYY-MM-DD"),
+												today.subtract(1, "month").endOf("month").format("YYYY-MM-DD"),
+											],
+											label: "В прошлом месяце",
+										},
+									]}
+								/>
+							</Center>
 
-
+							<Center>
+								<Card p="xs">{meanCaloriesInterval} ккал</Card>
+							</Center>
+						</Card>
+					</Stack>
+				</Paper>
 
 				{userGoals && (
 					<Paper p="xl" radius="md" withBorder>
