@@ -15,9 +15,8 @@ import {
 import { notifications } from "@mantine/notifications";
 import { IconChevronLeft, IconChevronRight, IconLogout } from "@tabler/icons-react";
 import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetWeeklyFoodsQuery } from "../api/foodQueries";
 import { useGetUserGoalsQuery, useUpdateUserGoalsMutation } from "../api/userQueries";
 import { CalorieCalculator } from "../components/Profile/CalorieCalculator";
 import { useAuthStore } from "../stores/authStore";
@@ -83,34 +82,18 @@ export function ProfilePage() {
 
 	const [currentDate, setCurrentDate] = useState(dayjs());
 
-	const currentDateString = currentDate.format("YYYY-MM-DD");
-	const { data: weeklyFoods = [] } = useGetWeeklyFoodsQuery(currentDateString);
+	const mondayOfWeek = useMemo(() => currentDate.isoWeekday(1).toDate(), [currentDate]);
+	const sundayOfWeek = useMemo(() => currentDate.isoWeekday(7).toDate(), [currentDate]);
 
-	const meanCalories = useMemo(() => {
-		const startOfWeek = currentDate.isoWeekday(1).startOf("day");
-		const endOfWeek = currentDate.isoWeekday(7).endOf("day");
+	const [datesFromTo, setDatesFromTo] = useState<[Date | null, Date | null]>([
+		mondayOfWeek,
+		sundayOfWeek,
+	]);
 
-		// Фильтруем записи за выбранную неделю
-		const weekEntries = weeklyFoods.filter(
-			(e) => e.date && dayjs(e.date).isBetween(startOfWeek, endOfWeek, "day", "[]"),
-		);
-
-		// Рассчитываем общее количество калорий за неделю
-		// kcalories - калории на 100г, value - вес в граммах
-		const totalCaloriesPerWeek = weekEntries.reduce((acc, el) => {
-			const kcalories = el.kcalories ?? 0;
-			const value = el.value ?? 0;
-			return acc + (kcalories * value) / 100;
-		}, 0);
-
-		// Получаем уникальные дни недели с записями
-		const uniqueDays = new Set(weekEntries.map((e) => e.date).filter(Boolean));
-
-		// Среднее количество калорий в день за неделю
-		const dailyCaloriesPerWeek = uniqueDays.size > 0 ? totalCaloriesPerWeek / uniqueDays.size : 0;
-
-		return Math.round(dailyCaloriesPerWeek);
-	}, [currentDate, weeklyFoods]);
+	// Синхронизируем datesFromTo с currentDate при изменении недели через кнопки
+	useEffect(() => {
+		setDatesFromTo([mondayOfWeek, sundayOfWeek]);
+	}, [mondayOfWeek, sundayOfWeek]);
 
 	const handlePrevWeek = () => {
 		setCurrentDate((prev) => prev.clone().subtract(1, "week"));
@@ -120,11 +103,9 @@ export function ProfilePage() {
 		setCurrentDate((prev) => prev.clone().add(1, "week"));
 	};
 
-	const [datesFromTo, setDatesFromTo] = useState<[Date | null, Date | null]>([null, null]);
-
 	const handleDateRangeChange = (value: [string | null, string | null] | null) => {
 		if (!value) {
-			setDatesFromTo([null, null]);
+			setDatesFromTo([mondayOfWeek, sundayOfWeek]);
 			return;
 		}
 		const [fromStr, toStr] = value;
@@ -228,6 +209,7 @@ export function ProfilePage() {
 				<Paper p="xl" radius="md" withBorder>
 					<Stack gap="md">
 						<Title order={4}>Cреднесуточная калорийность</Title>
+
 						<Card p="md" withBorder>
 							<Center>
 								<ActionIcon
@@ -239,29 +221,6 @@ export function ProfilePage() {
 								>
 									<IconChevronLeft size={18} />
 								</ActionIcon>
-
-								<Card withBorder shadow="sm" padding="sm" radius="md">
-									{currentDate.isoWeekday(1).startOf("day").format("DD.MM.YYYY")} —
-									{currentDate.isoWeekday(7).endOf("day").format("DD.MM.YYYY")}
-								</Card>
-
-								<ActionIcon
-									variant="subtle"
-									c="dark.4"
-									size="md"
-									aria-label="Следующая неделя"
-									onClick={handleNextWeek}
-								>
-									<IconChevronRight size={18} />
-								</ActionIcon>
-							</Center>
-							<Center>
-								<Card p="xs">{meanCalories} ккал</Card>
-							</Center>
-						</Card>
-
-						<Card p="md" withBorder>
-							<Center>
 								<DatePickerInput
 									clearable
 									value={datesFromTo}
@@ -316,6 +275,15 @@ export function ProfilePage() {
 										},
 									]}
 								/>
+								<ActionIcon
+									variant="subtle"
+									c="dark.4"
+									size="md"
+									aria-label="Следующая неделя"
+									onClick={handleNextWeek}
+								>
+									<IconChevronRight size={18} />
+								</ActionIcon>
 							</Center>
 
 							<Center>
