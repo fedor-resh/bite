@@ -189,7 +189,7 @@ export function ProfilePage() {
 		return Math.round(dailyCaloriesPerInterval);
 	}, [from, to, intervalFoods]);
 
-	const today = dayjs();
+	const _today = dayjs();
 
 	return (
 		<Container size="sm" py="xl" px="0" my="0">
@@ -208,7 +208,7 @@ export function ProfilePage() {
 
 				<Paper p="xl" radius="md" withBorder>
 					<Stack gap="md">
-						<Title order={4}>Cреднесуточная калорийность</Title>
+						<Title order={4}>Средняя дневная калорийность за период</Title>
 
 						<Card p="md" withBorder>
 							<Center>
@@ -222,7 +222,6 @@ export function ProfilePage() {
 									<IconChevronLeft size={18} />
 								</ActionIcon>
 								<DatePickerInput
-									clearable
 									value={datesFromTo}
 									onChange={handleDateRangeChange}
 									type="range"
@@ -230,50 +229,6 @@ export function ProfilePage() {
 									placeholder="Выберите интервал"
 									locale="ru"
 									valueFormat="DD.MM.YYYY"
-									presets={[
-										{
-											value: [
-												today.subtract(6, "day").format("YYYY-MM-DD"),
-												today.format("YYYY-MM-DD"),
-											],
-											label: "Последние 7 дней",
-										},
-										{
-											value: [
-												today.subtract(13, "day").format("YYYY-MM-DD"),
-												today.format("YYYY-MM-DD"),
-											],
-											label: "Последние 14 дней",
-										},
-										{
-											value: [
-												today.subtract(20, "day").format("YYYY-MM-DD"),
-												today.format("YYYY-MM-DD"),
-											],
-											label: "Последние 21 день",
-										},
-										{
-											value: [
-												today.subtract(27, "day").format("YYYY-MM-DD"),
-												today.format("YYYY-MM-DD"),
-											],
-											label: "Последние 28 дней",
-										},
-										{
-											value: [
-												today.startOf("month").format("YYYY-MM-DD"),
-												today.format("YYYY-MM-DD"),
-											],
-											label: "В этом месяце",
-										},
-										{
-											value: [
-												today.subtract(1, "month").startOf("month").format("YYYY-MM-DD"),
-												today.subtract(1, "month").endOf("month").format("YYYY-MM-DD"),
-											],
-											label: "В прошлом месяце",
-										},
-									]}
 								/>
 								<ActionIcon
 									variant="subtle"
