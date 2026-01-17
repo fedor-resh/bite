@@ -210,7 +210,7 @@ export function ProfilePage() {
 					<Stack gap="md">
 						<Title order={4}>Средняя дневная калорийность за период</Title>
 
-						<Card p="md" withBorder>
+						<Card p="sm" withBorder>
 							<Center>
 								<ActionIcon
 									variant="subtle"
@@ -240,9 +240,11 @@ export function ProfilePage() {
 									<IconChevronRight size={18} />
 								</ActionIcon>
 							</Center>
-
+							<div style={{height:"10px"}}></div>
 							<Center>
-								<Card p="xs">{meanCaloriesInterval} ккал</Card>
+								
+								<Text fw={600} size="lg">{meanCaloriesInterval} ккал</Text>
+								
 							</Center>
 						</Card>
 					</Stack>
