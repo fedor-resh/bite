@@ -11,6 +11,7 @@ import {
 	Stack,
 	Text,
 	Title,
+	Divider
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconChevronLeft, IconChevronRight, IconLogout } from "@tabler/icons-react";
@@ -211,7 +212,9 @@ export function ProfilePage() {
 						<Title order={4}>Средняя дневная калорийность за период</Title>
 
 						<Card p="sm" withBorder>
+						<div style={{height:"5px"}}></div>
 							<Center>
+
 								<ActionIcon
 									variant="subtle"
 									c="dark.4"
@@ -243,7 +246,7 @@ export function ProfilePage() {
 							<div style={{height:"10px"}}></div>
 							<Center>
 								
-								<Text fw={600} size="lg">{meanCaloriesInterval} ккал</Text>
+								<Text fw={600} size="lg" c="orange.6">{meanCaloriesInterval} ккал</Text>
 								
 							</Center>
 						</Card>
@@ -256,10 +259,11 @@ export function ProfilePage() {
 							<Title order={4}>Текущие цели</Title>
 							<Group grow>
 								<Paper p="md" radius="md" withBorder bd="1px solid #ff7428">
-									<Stack gap="xs" align="center">
+									<Stack gap="0" align="center">
 										<Text size="sm" c="dimmed" fw={500}>
 											Калории
 										</Text>
+										<Divider my="3px" w='100%'/>
 										<Text size="xl" fw={700} c="orange.6">
 											{userGoals.caloriesGoal}
 										</Text>
@@ -269,10 +273,11 @@ export function ProfilePage() {
 									</Stack>
 								</Paper>
 								<Paper p="md" radius="md" withBorder bd="1px solid #3d7cff">
-									<Stack gap="xs" align="center">
+									<Stack gap="0" align="center">
 										<Text size="sm" c="dimmed" fw={500}>
 											Белок
 										</Text>
+										<Divider my="3px"  w='100%'/>
 										<Text size="xl" fw={700} c="blue.6">
 											{userGoals.proteinGoal}
 										</Text>
