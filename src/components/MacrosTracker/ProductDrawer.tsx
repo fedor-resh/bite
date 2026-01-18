@@ -142,7 +142,7 @@ export function ProductDrawer() {
 	}
 
 	return (
-		<AboveKeyboardWrapper bottomOffset={16} autoFocus focusSelector='input[name="value"]'>
+		<AboveKeyboardWrapper bottomOffset={16} autoFocus focusSelector='input[name="name"]'>
 			<div
 				style={{
 					width: "100%",
@@ -163,6 +163,7 @@ export function ProductDrawer() {
 					}}
 				>
 					<TextInput
+						name="name"
 						placeholder="Название продукта"
 						{...form.getInputProps("name")}
 						style={{ flex: 1, minWidth: 0 }}
