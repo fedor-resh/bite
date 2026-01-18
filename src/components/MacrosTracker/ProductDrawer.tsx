@@ -142,7 +142,11 @@ export function ProductDrawer() {
 	}
 
 	return (
-		<AboveKeyboardWrapper bottomOffset={16} autoFocus focusSelector='input[name="name"]'>
+		<AboveKeyboardWrapper
+			bottomOffset={16}
+			autoFocus
+			focusSelector={mode === "edit" ? 'input[name="value"]' : 'input[name="name"]'}
+		>
 			<div
 				style={{
 					width: "100%",
