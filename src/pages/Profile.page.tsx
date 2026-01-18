@@ -5,14 +5,18 @@ import {
 	Card,
 	Center,
 	Container,
+	Divider,
 	Group,
+	Modal,
+	NumberInput,
 	Paper,
 	Space,
 	Stack,
 	Text,
 	Title,
-	Divider
 } from "@mantine/core";
+
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { IconChevronLeft, IconChevronRight, IconLogout } from "@tabler/icons-react";
 import dayjs from "dayjs";
@@ -192,6 +196,40 @@ export function ProfilePage() {
 
 	const _today = dayjs();
 
+	const [opened, { open, close }] = useDisclosure(false);
+	
+	const [caloriesGoal, setCaloriesGoal] = useState<number | string>("");
+	const [proteinGoal, setProteinGoal] = useState<number | string>("");
+
+	// Инициализируем значения при открытии модального окна
+	useEffect(() => {
+		if (opened && userGoals) {
+			setCaloriesGoal(userGoals.caloriesGoal ?? "");
+			setProteinGoal(userGoals.proteinGoal ?? "");
+		}
+	}, [opened, userGoals]);
+
+	const handleSaveGoals = () => {
+		if (!user?.id) {
+			return;
+		}
+
+		const calories = typeof caloriesGoal === "string" ? Number(caloriesGoal) : caloriesGoal;
+		const protein = typeof proteinGoal === "string" ? Number(proteinGoal) : proteinGoal;
+
+		if (!calories || !protein || calories < 1 || protein < 1) {
+			notifications.show({
+				title: "Ошибка",
+				message: "Пожалуйста, введите корректные значения",
+				color: "red",
+			});
+			return;
+		}
+
+		handleSave(calories, protein);
+		close();
+	};
+
 	return (
 		<Container size="sm" py="xl" px="0" my="0">
 			<Stack gap="xl">
@@ -212,9 +250,8 @@ export function ProfilePage() {
 						<Title order={4}>Средняя дневная калорийность за период</Title>
 
 						<Card p="sm" withBorder>
-						<div style={{height:"5px"}}></div>
+							<div style={{ height: "5px" }}></div>
 							<Center>
-
 								<ActionIcon
 									variant="subtle"
 									c="dark.4"
@@ -243,18 +280,18 @@ export function ProfilePage() {
 									<IconChevronRight size={18} />
 								</ActionIcon>
 							</Center>
-							<div style={{height:"10px"}}></div>
+							<div style={{ height: "10px" }}></div>
 							<Center>
-								
-								<Text fw={600} size="lg" c="orange.6">{meanCaloriesInterval} ккал</Text>
-								
+								<Text fw={600} size="lg" c="orange.6">
+									{meanCaloriesInterval} ккал
+								</Text>
 							</Center>
 						</Card>
 					</Stack>
 				</Paper>
 
 				{userGoals && (
-					<Paper p="xl" radius="md" withBorder>
+					<Paper p="xl" radius="md" withBorder onClick={open} style={{ cursor: "pointer" }}>
 						<Stack gap="md">
 							<Title order={4}>Текущие цели</Title>
 							<Group grow>
@@ -263,7 +300,7 @@ export function ProfilePage() {
 										<Text size="sm" c="dimmed" fw={500}>
 											Калории
 										</Text>
-										<Divider my="3px" w='100%'/>
+										<Divider my="3px" w="100%" />
 										<Text size="xl" fw={700} c="orange.6">
 											{userGoals.caloriesGoal}
 										</Text>
@@ -277,7 +314,7 @@ export function ProfilePage() {
 										<Text size="sm" c="dimmed" fw={500}>
 											Белок
 										</Text>
-										<Divider my="3px"  w='100%'/>
+										<Divider my="3px" w="100%" />
 										<Text size="xl" fw={700} c="blue.6">
 											{userGoals.proteinGoal}
 										</Text>
@@ -290,6 +327,30 @@ export function ProfilePage() {
 						</Stack>
 					</Paper>
 				)}
+
+				<Modal opened={opened} onClose={close} withCloseButton={false}>
+					<NumberInput
+						label="Цель по калориям"
+						min={1}
+						value={caloriesGoal}
+						onChange={setCaloriesGoal}
+						styles={{
+							label: { color: "#ff7428", marginBottom: "0.5rem" },
+						}}
+					/>
+					<NumberInput
+						label="Цель по белку (г)"
+						min={1}
+						value={proteinGoal}
+						onChange={setProteinGoal}
+						styles={{
+							label: { color: "#3d7cff", marginBottom: "0.5rem" },
+						}}
+					/>
+					<Group justify="flex-end" mt="md">
+						<Button onClick={handleSaveGoals}>Сохранить цели</Button>
+					</Group>
+				</Modal>
 
 				{userGoals && user?.id && (
 					<CalorieCalculator
