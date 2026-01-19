@@ -27,6 +27,9 @@ export function ProductDrawer() {
 	const selectedDate = useDateStore((state) => state.selectedDate);
 	const navigate = useNavigate();
 
+	// Определяем, есть ли продукт (из базы данных или из истории пользователя)
+	const hasProduct = !!product;
+
 	const { mutate: addFood, isPending: isAdding } = useAddFoodMutation();
 	const { mutate: updateFood, isPending: isUpdating } = useUpdateFoodMutation();
 	const { mutate: deleteFood, isPending: isDeleting } = useDeleteFoodMutation();
@@ -145,7 +148,7 @@ export function ProductDrawer() {
 		<AboveKeyboardWrapper
 			bottomOffset={16}
 			autoFocus
-			focusSelector={mode === "edit" ? 'input[name="value"]' : 'input[name="name"]'}
+			focusSelector={hasProduct ? 'input[name="value"]' : 'input[name="name"]'}
 		>
 			<div
 				style={{
