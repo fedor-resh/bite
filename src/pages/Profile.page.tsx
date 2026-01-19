@@ -15,7 +15,6 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { IconChevronLeft, IconChevronRight, IconLogout } from "@tabler/icons-react";
@@ -371,6 +370,12 @@ export function ProfilePage() {
 				)}
 
 				<Modal opened={caloriesModalOpened} onClose={closeCaloriesModal} withCloseButton={false}>
+				<form
+						onSubmit={(event) => {
+							event.preventDefault();
+							handleSaveCaloriesGoal();
+						}}
+					>
 					<NumberInput
 						autoFocus
 						onFocusCapture={(event) => {
@@ -385,27 +390,38 @@ export function ProfilePage() {
 						}}
 					/>
 					<Group justify="flex-end" mt="md">
-						<Button onClick={handleSaveCaloriesGoal}>Сохранить</Button>
+						<Button type="submit" onClick={handleSaveCaloriesGoal}>Сохранить</Button>
 					</Group>
+					</form>
 				</Modal>
 
+
 				<Modal opened={proteinModalOpened} onClose={closeProteinModal} withCloseButton={false}>
-					<NumberInput
-						autoFocus
-						onFocusCapture={(event) => {
-							event.currentTarget.select();
+					<form
+						onSubmit={(event) => {
+							event.preventDefault();
+							handleSaveProteinGoal();
 						}}
-						label="Цель по белку (г)"
-						min={1}
-						value={proteinGoal}
-						onChange={setProteinGoal}
-						styles={{
-							label: { color: "#3d7cff", marginBottom: "0.5rem" },
-						}}
-					/>
-					<Group justify="flex-end" mt="md">
-						<Button onClick={handleSaveProteinGoal}>Сохранить</Button>
-					</Group>
+					>
+						<NumberInput
+							autoFocus
+							onFocusCapture={(event) => {
+								event.currentTarget.select();
+							}}
+							label="Цель по белку (г)"
+							min={1}
+							value={proteinGoal}
+							onChange={setProteinGoal}
+							styles={{
+								label: { color: "#3d7cff", marginBottom: "0.5rem" },
+							}}
+						/>
+						<Group justify="flex-end" mt="md">
+							<Button type="submit" onClick={handleSaveProteinGoal}>
+								Сохранить
+							</Button>
+						</Group>
+					</form>
 				</Modal>
 
 				{userGoals && user?.id && (
