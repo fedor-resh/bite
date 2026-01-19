@@ -196,38 +196,66 @@ export function ProfilePage() {
 
 	const _today = dayjs();
 
-	const [opened, { open, close }] = useDisclosure(false);
-	
+	const [caloriesModalOpened, { open: openCaloriesModal, close: closeCaloriesModal }] =
+		useDisclosure(false);
+	const [proteinModalOpened, { open: openProteinModal, close: closeProteinModal }] =
+		useDisclosure(false);
+
 	const [caloriesGoal, setCaloriesGoal] = useState<number | string>("");
 	const [proteinGoal, setProteinGoal] = useState<number | string>("");
 
-	// Инициализируем значения при открытии модального окна
+	// Инициализируем значения при открытии модального окна для калорий
 	useEffect(() => {
-		if (opened && userGoals) {
+		if (caloriesModalOpened && userGoals) {
 			setCaloriesGoal(userGoals.caloriesGoal ?? "");
+		}
+	}, [caloriesModalOpened, userGoals]);
+
+	// Инициализируем значения при открытии модального окна для белка
+	useEffect(() => {
+		if (proteinModalOpened && userGoals) {
 			setProteinGoal(userGoals.proteinGoal ?? "");
 		}
-	}, [opened, userGoals]);
+	}, [proteinModalOpened, userGoals]);
 
-	const handleSaveGoals = () => {
-		if (!user?.id) {
+	const handleSaveCaloriesGoal = () => {
+		if (!user?.id || !userGoals) {
 			return;
 		}
 
 		const calories = typeof caloriesGoal === "string" ? Number(caloriesGoal) : caloriesGoal;
-		const protein = typeof proteinGoal === "string" ? Number(proteinGoal) : proteinGoal;
 
-		if (!calories || !protein || calories < 1 || protein < 1) {
+		if (!calories || calories < 1) {
 			notifications.show({
 				title: "Ошибка",
-				message: "Пожалуйста, введите корректные значения",
+				message: "Пожалуйста, введите корректное значение калорий",
 				color: "red",
 			});
 			return;
 		}
 
-		handleSave(calories, protein);
-		close();
+		handleSave(calories, userGoals.proteinGoal);
+		closeCaloriesModal();
+	};
+
+	const handleSaveProteinGoal = () => {
+		if (!user?.id || !userGoals) {
+			return;
+		}
+
+		const protein = typeof proteinGoal === "string" ? Number(proteinGoal) : proteinGoal;
+
+		if (!protein || protein < 1) {
+			notifications.show({
+				title: "Ошибка",
+				message: "Пожалуйста, введите корректное значение белка",
+				color: "red",
+			});
+			return;
+		}
+
+		handleSave(userGoals.caloriesGoal, protein);
+		closeProteinModal();
 	};
 
 	return (
@@ -291,11 +319,18 @@ export function ProfilePage() {
 				</Paper>
 
 				{userGoals && (
-					<Paper p="xl" radius="md" withBorder onClick={open} style={{ cursor: "pointer" }}>
+					<Paper p="xl" radius="md" withBorder>
 						<Stack gap="md">
 							<Title order={4}>Текущие цели</Title>
 							<Group grow>
-								<Paper p="md" radius="md" withBorder bd="1px solid #ff7428">
+								<Paper
+									p="md"
+									radius="md"
+									withBorder
+									bd="1px solid #ff7428"
+									onClick={openCaloriesModal}
+									style={{ cursor: "pointer" }}
+								>
 									<Stack gap="0" align="center">
 										<Text size="sm" c="dimmed" fw={500}>
 											Калории
@@ -309,7 +344,14 @@ export function ProfilePage() {
 										</Text>
 									</Stack>
 								</Paper>
-								<Paper p="md" radius="md" withBorder bd="1px solid #3d7cff">
+								<Paper
+									p="md"
+									radius="md"
+									withBorder
+									bd="1px solid #3d7cff"
+									onClick={openProteinModal}
+									style={{ cursor: "pointer" }}
+								>
 									<Stack gap="0" align="center">
 										<Text size="sm" c="dimmed" fw={500}>
 											Белок
@@ -328,8 +370,12 @@ export function ProfilePage() {
 					</Paper>
 				)}
 
-				<Modal opened={opened} onClose={close} withCloseButton={false}>
+				<Modal opened={caloriesModalOpened} onClose={closeCaloriesModal} withCloseButton={false}>
 					<NumberInput
+						autoFocus
+						onFocusCapture={(event) => {
+							event.currentTarget.select();
+						}}
 						label="Цель по калориям"
 						min={1}
 						value={caloriesGoal}
@@ -338,7 +384,17 @@ export function ProfilePage() {
 							label: { color: "#ff7428", marginBottom: "0.5rem" },
 						}}
 					/>
+					<Group justify="flex-end" mt="md">
+						<Button onClick={handleSaveCaloriesGoal}>Сохранить</Button>
+					</Group>
+				</Modal>
+
+				<Modal opened={proteinModalOpened} onClose={closeProteinModal} withCloseButton={false}>
 					<NumberInput
+						autoFocus
+						onFocusCapture={(event) => {
+							event.currentTarget.select();
+						}}
 						label="Цель по белку (г)"
 						min={1}
 						value={proteinGoal}
@@ -348,7 +404,7 @@ export function ProfilePage() {
 						}}
 					/>
 					<Group justify="flex-end" mt="md">
-						<Button onClick={handleSaveGoals}>Сохранить цели</Button>
+						<Button onClick={handleSaveProteinGoal}>Сохранить</Button>
 					</Group>
 				</Modal>
 
