@@ -27,7 +27,6 @@ export function ProductDrawer() {
 	const selectedDate = useDateStore((state) => state.selectedDate);
 	const navigate = useNavigate();
 
-	// Определяем, есть ли продукт (из базы данных или из истории пользователя)
 	const hasProduct = !!product;
 
 	const { mutate: addFood, isPending: isAdding } = useAddFoodMutation();

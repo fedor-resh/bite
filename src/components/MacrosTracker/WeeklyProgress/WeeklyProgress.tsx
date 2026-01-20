@@ -127,8 +127,6 @@ export function WeeklyProgress({ caloriesGoal = 3000, proteinGoal = 150 }: Weekl
 		});
 	};
 
-	// const theme = useMantineTheme();
-
 	return (
 		<Box className={styles.margin}>
 			<Group gap={0} align="center" justify="space-between" wrap="nowrap">

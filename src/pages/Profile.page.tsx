@@ -370,31 +370,32 @@ export function ProfilePage() {
 				)}
 
 				<Modal opened={caloriesModalOpened} onClose={closeCaloriesModal} withCloseButton={false}>
-				<form
+					<form
 						onSubmit={(event) => {
 							event.preventDefault();
 							handleSaveCaloriesGoal();
 						}}
 					>
-					<NumberInput
-						autoFocus
-						onFocusCapture={(event) => {
-							event.currentTarget.select();
-						}}
-						label="Цель по калориям"
-						min={1}
-						value={caloriesGoal}
-						onChange={setCaloriesGoal}
-						styles={{
-							label: { color: "#ff7428", marginBottom: "0.5rem" },
-						}}
-					/>
-					<Group justify="flex-end" mt="md">
-						<Button type="submit" onClick={handleSaveCaloriesGoal}>Сохранить</Button>
-					</Group>
+						<NumberInput
+							autoFocus
+							onFocusCapture={(event) => {
+								event.currentTarget.select();
+							}}
+							label="Цель по калориям"
+							min={1}
+							value={caloriesGoal}
+							onChange={setCaloriesGoal}
+							styles={{
+								label: { color: "#ff7428", marginBottom: "0.5rem" },
+							}}
+						/>
+						<Group justify="flex-end" mt="md">
+							<Button type="submit" onClick={handleSaveCaloriesGoal}>
+								Сохранить
+							</Button>
+						</Group>
 					</form>
 				</Modal>
-
 
 				<Modal opened={proteinModalOpened} onClose={closeProteinModal} withCloseButton={false}>
 					<form
