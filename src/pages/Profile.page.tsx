@@ -84,6 +84,12 @@ export function ProfilePage() {
 		);
 	};
 
+
+
+
+
+
+	
 	const [currentDate, setCurrentDate] = useState(dayjs());
 
 	const mondayOfWeek = useMemo(() => currentDate.isoWeekday(1).toDate(), [currentDate]);
@@ -94,7 +100,6 @@ export function ProfilePage() {
 		sundayOfWeek,
 	]);
 
-	// Синхронизируем datesFromTo с currentDate при изменении недели через кнопки
 	useEffect(() => {
 		setDatesFromTo([mondayOfWeek, sundayOfWeek]);
 	}, [mondayOfWeek, sundayOfWeek]);
@@ -115,6 +120,9 @@ export function ProfilePage() {
 		const [fromStr, toStr] = value;
 		setDatesFromTo([fromStr ? new Date(fromStr) : null, toStr ? new Date(toStr) : null]);
 	};
+
+
+
 
 	const foodKeys = {
 		all: ["foods"] as const,
@@ -144,8 +152,8 @@ export function ProfilePage() {
 					.from("eaten_products")
 					.select("*")
 					.eq("userId", userId)
-					.gte("date", fromStr) // >= from
-					.lte("date", toStr) // <= to
+					.gte("date", fromStr)
+					.lte("date", toStr) 
 					.order("createdAt", { ascending: false });
 
 				if (error) {
@@ -158,8 +166,12 @@ export function ProfilePage() {
 		});
 	}
 
+
+
+
+
+
 	const [from, to] = datesFromTo;
-	// const intervalDateString = from ? dayjs(from).format("YYYY-MM-DD") : null;
 	const { data: intervalFoods = [] } = useGetFoodsInRangeQuery(from, to);
 
 	const meanCaloriesInterval = useMemo(() => {
@@ -170,30 +182,28 @@ export function ProfilePage() {
 		const startDate = dayjs(from).startOf("day");
 		const endDate = dayjs(to).endOf("day");
 
-		// Фильтруем записи за выбранный интервал
 		const intervalEntries = intervalFoods.filter(
 			(e) => e.date && dayjs(e.date).isBetween(startDate, endDate, "day", "[]"),
 		);
 
-		// Рассчитываем общее количество калорий за интервал
-		// kcalories - калории на 100г, value - вес в граммах
 		const totalCaloriesPerInterval = intervalEntries.reduce((acc, el) => {
 			const kcalories = el.kcalories ?? 0;
 			const value = el.value ?? 0;
 			return acc + (kcalories * value) / 100;
 		}, 0);
 
-		// Получаем уникальные дни интервала с записями
 		const uniqueDays = new Set(intervalEntries.map((e) => e.date).filter(Boolean));
 
-		// Среднее количество калорий в день за интервал
 		const dailyCaloriesPerInterval =
 			uniqueDays.size > 0 ? totalCaloriesPerInterval / uniqueDays.size : 0;
 
 		return Math.round(dailyCaloriesPerInterval);
 	}, [from, to, intervalFoods]);
 
-	const _today = dayjs();
+
+
+
+
 
 	const [caloriesModalOpened, { open: openCaloriesModal, close: closeCaloriesModal }] =
 		useDisclosure(false);
@@ -203,14 +213,12 @@ export function ProfilePage() {
 	const [caloriesGoal, setCaloriesGoal] = useState<number | string>("");
 	const [proteinGoal, setProteinGoal] = useState<number | string>("");
 
-	// Инициализируем значения при открытии модального окна для калорий
 	useEffect(() => {
 		if (caloriesModalOpened && userGoals) {
 			setCaloriesGoal(userGoals.caloriesGoal ?? "");
 		}
 	}, [caloriesModalOpened, userGoals]);
 
-	// Инициализируем значения при открытии модального окна для белка
 	useEffect(() => {
 		if (proteinModalOpened && userGoals) {
 			setProteinGoal(userGoals.proteinGoal ?? "");
@@ -256,6 +264,9 @@ export function ProfilePage() {
 		handleSave(userGoals.caloriesGoal, protein);
 		closeProteinModal();
 	};
+
+
+
 
 	return (
 		<Container size="sm" py="xl" px="0" my="0">
