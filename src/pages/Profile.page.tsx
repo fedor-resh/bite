@@ -1,5 +1,4 @@
 import {
-	ActionIcon,
 	Avatar,
 	Button,
 	Card,
@@ -17,22 +16,20 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconChevronLeft, IconChevronRight, IconLogout } from "@tabler/icons-react";
-import dayjs from "dayjs";
+import { IconLogout } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetUserGoalsQuery, useUpdateUserGoalsMutation } from "../api/userQueries";
 import { CalorieCalculator } from "../components/Profile/CalorieCalculator";
 import { useAuthStore } from "../stores/authStore";
 import "dayjs/locale/ru";
-import { DatePickerInput } from "@mantine/dates";
-import { IconCalendar } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import isoWeek from "dayjs/plugin/isoWeek";
-import { supabase } from "../lib/supabase";
-import type { EatenProduct } from "../types/types";
-import { getFormattedDate } from "../utils/dateUtils";
+import { useGetFoodsInRangeQuery } from "@/api/foodQueries";
+import { useDateRangeContext } from "@/hooks/useDateRangeContext";
+import CalendarForAverageDailyCalories from "../components/Profile/CalendarForAverageDailyCalories";
+import { useMeanCalories } from "@/hooks/useMeanCalories";
 
 dayjs.extend(isBetween);
 dayjs.extend(isoWeek);
@@ -84,124 +81,12 @@ export function ProfilePage() {
 		);
 	};
 
-
-
-
-
-
-	
-	const [currentDate, setCurrentDate] = useState(dayjs());
-
-	const mondayOfWeek = useMemo(() => currentDate.isoWeekday(1).toDate(), [currentDate]);
-	const sundayOfWeek = useMemo(() => currentDate.isoWeekday(7).toDate(), [currentDate]);
-
-	const [datesFromTo, setDatesFromTo] = useState<[Date | null, Date | null]>([
-		mondayOfWeek,
-		sundayOfWeek,
-	]);
-
-	useEffect(() => {
-		setDatesFromTo([mondayOfWeek, sundayOfWeek]);
-	}, [mondayOfWeek, sundayOfWeek]);
-
-	const handlePrevWeek = () => {
-		setCurrentDate((prev) => prev.clone().subtract(1, "week"));
-	};
-
-	const handleNextWeek = () => {
-		setCurrentDate((prev) => prev.clone().add(1, "week"));
-	};
-
-	const handleDateRangeChange = (value: [string | null, string | null] | null) => {
-		if (!value) {
-			setDatesFromTo([mondayOfWeek, sundayOfWeek]);
-			return;
-		}
-		const [fromStr, toStr] = value;
-		setDatesFromTo([fromStr ? new Date(fromStr) : null, toStr ? new Date(toStr) : null]);
-	};
-
-
-
-
-	const foodKeys = {
-		all: ["foods"] as const,
-		foodsInRange: (from: string | null, to: string | null) => ["foods", "range", from, to] as const,
-		products: (query: string) => ["products", query] as const,
-	};
-
-	function useGetFoodsInRangeQuery(from: Date | null, to: Date | null) {
-		const fromStr = from ? getFormattedDate(from) : null;
-		const toStr = to ? getFormattedDate(to) : null;
-
-		const userId = useAuthStore((state) => state.user?.id);
-
-		const hasRange = Boolean(from && to);
-
-		return useQuery({
-			queryKey: foodKeys.foodsInRange(fromStr, toStr),
-			queryFn: async () => {
-				if (!userId) {
-					throw new Error("User is not authenticated");
-				}
-				if (!from || !to || !fromStr || !toStr) {
-					return [] as EatenProduct[];
-				}
-
-				const { data, error } = await supabase
-					.from("eaten_products")
-					.select("*")
-					.eq("userId", userId)
-					.gte("date", fromStr)
-					.lte("date", toStr) 
-					.order("createdAt", { ascending: false });
-
-				if (error) {
-					throw error;
-				}
-
-				return data as EatenProduct[];
-			},
-			enabled: !!userId && hasRange,
-		});
-	}
-
-
-
-
-
+	const { datesFromTo } = useDateRangeContext();
 
 	const [from, to] = datesFromTo;
 	const { data: intervalFoods = [] } = useGetFoodsInRangeQuery(from, to);
 
-	const meanCaloriesInterval = useMemo(() => {
-		if (!from || !to) {
-			return 0;
-		}
-
-		const startDate = dayjs(from).startOf("day");
-		const endDate = dayjs(to).endOf("day");
-
-		const intervalEntries = intervalFoods.filter(
-			(e) => e.date && dayjs(e.date).isBetween(startDate, endDate, "day", "[]"),
-		);
-
-		const totalCaloriesPerInterval = intervalEntries.reduce((acc, el) => {
-			const kcalories = el.kcalories ?? 0;
-			const value = el.value ?? 0;
-			return acc + (kcalories * value) / 100;
-		}, 0);
-
-		const uniqueDays = new Set(intervalEntries.map((e) => e.date).filter(Boolean));
-
-		const dailyCaloriesPerInterval =
-			uniqueDays.size > 0 ? totalCaloriesPerInterval / uniqueDays.size : 0;
-
-		return Math.round(dailyCaloriesPerInterval);
-	}, [from, to, intervalFoods]);
-
-
-
+	const meanCaloriesInterval = useMeanCalories(from, to, intervalFoods);
 
 
 
@@ -266,8 +151,6 @@ export function ProfilePage() {
 	};
 
 
-
-
 	return (
 		<Container size="sm" py="xl" px="0" my="0">
 			<Stack gap="xl">
@@ -287,43 +170,14 @@ export function ProfilePage() {
 					<Stack gap="md">
 						<Title order={4}>Средняя дневная калорийность за период</Title>
 
-						<Card p="sm" withBorder>
-							<div style={{ height: "5px" }}></div>
-							<Center>
-								<ActionIcon
-									variant="subtle"
-									c="dark.4"
-									size="md"
-									aria-label="Предыдущая неделя"
-									onClick={handlePrevWeek}
-								>
-									<IconChevronLeft size={18} />
-								</ActionIcon>
-								<DatePickerInput
-									value={datesFromTo}
-									onChange={handleDateRangeChange}
-									type="range"
-									leftSection={<IconCalendar size={18} stroke={1.5} />}
-									placeholder="Выберите интервал"
-									locale="ru"
-									valueFormat="DD.MM.YYYY"
-								/>
-								<ActionIcon
-									variant="subtle"
-									c="dark.4"
-									size="md"
-									aria-label="Следующая неделя"
-									onClick={handleNextWeek}
-								>
-									<IconChevronRight size={18} />
-								</ActionIcon>
-							</Center>
-							<div style={{ height: "10px" }}></div>
+						<Card p="0" withBorder>
+							<CalendarForAverageDailyCalories />
 							<Center>
 								<Text fw={600} size="lg" c="orange.6">
 									{meanCaloriesInterval} ккал
 								</Text>
 							</Center>
+							<div style={{ height: "10px" }}></div>
 						</Card>
 					</Stack>
 				</Paper>

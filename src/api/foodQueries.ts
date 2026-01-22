@@ -3,13 +3,30 @@ import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../stores/authStore";
 import type { EatenProduct, InsertEatenProduct } from "../types/types";
 import { getFormattedDate } from "../utils/dateUtils";
+import { foodKeys } from "./foodKey";
+import { foodService } from "./services/foodService";
 
-// Query Keys
-export const foodKeys = {
-	all: ["foods"] as const,
-	weeklyFoods: (monday: string) => ["foods", monday] as const,
-	products: (query: string) => ["products", query] as const,
-};
+export function useGetFoodsInRangeQuery(from: Date | null, to: Date | null) {
+	const fromStr = from ? getFormattedDate(from) : null;
+	const toStr = to ? getFormattedDate(to) : null;
+	const userId = useAuthStore((state) => state.user?.id);
+	const hasRange = Boolean(from && to);
+
+	return useQuery({
+		queryKey: foodKeys.foodsInRange(fromStr, toStr),
+		queryFn: async () => {
+			if (!userId) {
+				throw new Error("User is not authenticated");
+			}
+			if (!from || !to || !fromStr || !toStr) {
+				return [];
+			}
+
+			return await foodService.getFoodInRange(userId, fromStr, toStr);
+		},
+		enabled: !!userId && hasRange,
+	});
+}
 
 export function getMondayOfWeek(date: string) {
 	const monday = new Date(date);

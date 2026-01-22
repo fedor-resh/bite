@@ -6,6 +6,7 @@ import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useEffect } from "react";
+import { DateRangeProvider } from "./contexts/DateRangeContexts";
 import { persister, queryClient } from "./lib/queryClient";
 import { Router } from "./Router";
 import { useAuthStore } from "./stores/authStore";
@@ -19,11 +20,13 @@ export default function App() {
 	}, [initialize]);
 
 	return (
-		<PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
-			<MantineProvider theme={theme} defaultColorScheme="dark">
-				<Notifications position="top-right" />
-				<Router />
-			</MantineProvider>
-		</PersistQueryClientProvider>
+		<DateRangeProvider>
+			<PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+				<MantineProvider theme={theme} defaultColorScheme="dark">
+					<Notifications position="top-right" />
+					<Router />
+				</MantineProvider>
+			</PersistQueryClientProvider>
+		</DateRangeProvider>
 	);
 }
