@@ -1,24 +1,39 @@
-import { IconLogout } from "@tabler/icons-react";
-import { useNavigate } from "react-router-dom";
-import { Avatar, Button, Container, Group, Paper, Space, Stack, Text, Title } from "@mantine/core";
+import {
+	Avatar,
+	Button,
+	Card,
+	Center,
+	Container,
+	Divider,
+	Group,
+	Modal,
+	NumberInput,
+	Paper,
+	Space,
+	Stack,
+	Text,
+	Title,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { IconLogout } from "@tabler/icons-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGetUserGoalsQuery, useUpdateUserGoalsMutation } from "../api/userQueries";
-import { useGetWeeklyFoodsQuery } from "../api/foodQueries";
 import { CalorieCalculator } from "../components/Profile/CalorieCalculator";
 import { useAuthStore } from "../stores/authStore";
-import type { FoodItemType } from "../components/FoodList";
-import { getFormattedDate } from "../utils/dateUtils";
+import "dayjs/locale/ru";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+import isoWeek from "dayjs/plugin/isoWeek";
+import { useGetFoodsInRangeQuery } from "@/api/foodQueries";
+import { useDateRangeContext } from "@/hooks/useDateRangeContext";
+import CalendarForAverageDailyCalories from "../components/Profile/CalendarForAverageDailyCalories";
+import { useMeanCalories } from "@/hooks/useMeanCalories";
 
-import {useState, useMemo} from 'react';
-import { IconChevronLeft, IconChevronRight} from '@tabler/icons-react';
-import { ActionIcon, Card, Center } from '@mantine/core';
-import dayjs from 'dayjs';
-import 'dayjs/locale/ru';
-import isoWeek from 'dayjs/plugin/isoWeek';
-import isBetween from 'dayjs/plugin/isBetween';
 dayjs.extend(isBetween);
 dayjs.extend(isoWeek);
-dayjs.locale('ru');
+dayjs.locale("ru");
 
 export function ProfilePage() {
 	const navigate = useNavigate();
@@ -66,98 +81,125 @@ export function ProfilePage() {
 		);
 	};
 
-	const [currentDate, setCurrentDate] = useState(dayjs());
-	const currentDateString = currentDate.format('YYYY-MM-DD');
-	const { data: weeklyFoods = [] } = useGetWeeklyFoodsQuery(currentDateString);
-	
-	const meanCalories = useMemo(() => {
-		const startOfWeek = currentDate.isoWeekday(1).startOf('day');
-		const endOfWeek = currentDate.isoWeekday(7).endOf('day');
+	const { datesFromTo } = useDateRangeContext();
 
-		// Фильтруем записи за выбранную неделю
-		const weekEntries = weeklyFoods.filter(e =>
-			e.date && dayjs(e.date).isBetween(startOfWeek, endOfWeek, 'day', '[]')
-		);
+	const [from, to] = datesFromTo;
+	const { data: intervalFoods = [] } = useGetFoodsInRangeQuery(from, to);
 
-		// Рассчитываем общее количество калорий за неделю
-		// kcalories - калории на 100г, value - вес в граммах
-		const totalCaloriesPerWeek = weekEntries.reduce((acc, el) => {
-			const kcalories = el.kcalories ?? 0;
-			const value = el.value ?? 0;
-			return acc + (kcalories * value) / 100;
-		}, 0);
-
-		// Получаем уникальные дни недели с записями
-		const uniqueDays = new Set(weekEntries.map(e => e.date).filter(Boolean));
-		
-		// Среднее количество калорий в день за неделю
-		const dailyCaloriesPerWeek = uniqueDays.size > 0 
-			? totalCaloriesPerWeek / uniqueDays.size 
-			: 0;
-
-		return Math.round(dailyCaloriesPerWeek);
-	}, [currentDate, weeklyFoods]);
+	const meanCaloriesInterval = useMeanCalories(from, to, intervalFoods);
 
 
 
-	
-	const handlePrevWeek = () => {
-		setCurrentDate((prev) => prev.clone().subtract(1, 'week'))
-	}
+	const [caloriesModalOpened, { open: openCaloriesModal, close: closeCaloriesModal }] =
+		useDisclosure(false);
+	const [proteinModalOpened, { open: openProteinModal, close: closeProteinModal }] =
+		useDisclosure(false);
 
-	const handleNextWeek = () => {
-		setCurrentDate((prev) => prev.clone().add(1, 'week'))
-	}
+	const [caloriesGoal, setCaloriesGoal] = useState<number | string>("");
+	const [proteinGoal, setProteinGoal] = useState<number | string>("");
+
+	useEffect(() => {
+		if (caloriesModalOpened && userGoals) {
+			setCaloriesGoal(userGoals.caloriesGoal ?? "");
+		}
+	}, [caloriesModalOpened, userGoals]);
+
+	useEffect(() => {
+		if (proteinModalOpened && userGoals) {
+			setProteinGoal(userGoals.proteinGoal ?? "");
+		}
+	}, [proteinModalOpened, userGoals]);
+
+	const handleSaveCaloriesGoal = () => {
+		if (!user?.id || !userGoals) {
+			return;
+		}
+
+		const calories = typeof caloriesGoal === "string" ? Number(caloriesGoal) : caloriesGoal;
+
+		if (!calories || calories < 1) {
+			notifications.show({
+				title: "Ошибка",
+				message: "Пожалуйста, введите корректное значение калорий",
+				color: "red",
+			});
+			return;
+		}
+
+		handleSave(calories, userGoals.proteinGoal);
+		closeCaloriesModal();
+	};
+
+	const handleSaveProteinGoal = () => {
+		if (!user?.id || !userGoals) {
+			return;
+		}
+
+		const protein = typeof proteinGoal === "string" ? Number(proteinGoal) : proteinGoal;
+
+		if (!protein || protein < 1) {
+			notifications.show({
+				title: "Ошибка",
+				message: "Пожалуйста, введите корректное значение белка",
+				color: "red",
+			});
+			return;
+		}
+
+		handleSave(userGoals.caloriesGoal, protein);
+		closeProteinModal();
+	};
+
 
 	return (
 		<Container size="sm" py="xl" px="0" my="0">
 			<Stack gap="xl">
 				<Title order={1}>Профиль</Title>
 
-				<Paper p="xs" radius="md" withBorder>
-					<Group align="center" justify="flex-start" gap="xl">
+				<Paper p="xl" radius="md" withBorder>
+					<Group gap="md">
 						<Avatar src={avatarUrl} alt={displayName} name={displayName} radius="xl" size={50} />
-						<Group align="center" gap="xl">
-							<Title order={3}>{displayName}</Title>
+						<Stack gap={0}>
+							<Title order={4}>{displayName}</Title>
 							{email && <Text c="dimmed">{email}</Text>}
-						</Group>
+						</Stack>
 					</Group>
 				</Paper>
 
-				
-				
+				<Paper p="xl" radius="md" withBorder>
+					<Stack gap="md">
+						<Title order={4}>Средняя дневная калорийность за период</Title>
 
-    <Card p="md" withBorder>
-    <Center>
-	  <ActionIcon variant="default" size="lg" radius="md" onClick={handlePrevWeek}>
-        <IconChevronLeft color="var(--mantine-color-red-text)" />
-      </ActionIcon>
-      <Card withBorder shadow="sm" padding="lg" radius="md">
-        {currentDate.isoWeekday(1).startOf('day').format('D MMMM YYYY')} — {currentDate.isoWeekday(7).endOf('day').format('D MMMM YYYY')}
-      </Card>
-      <ActionIcon variant="default" size="lg" radius="md" onClick={handleNextWeek}>
-        <IconChevronRight color="var(--mantine-color-teal-text)" />
-      </ActionIcon>
-      </Center>
-      <Center>
-	  <Card >{meanCalories} ккал</Card>
-	  </Center>
-      </Card>
-
-
-
-
+						<Card p="0" withBorder>
+							<CalendarForAverageDailyCalories />
+							<Center>
+								<Text fw={600} size="lg" c="orange.6">
+									{meanCaloriesInterval} ккал
+								</Text>
+							</Center>
+							<div style={{ height: "10px" }}></div>
+						</Card>
+					</Stack>
+				</Paper>
 
 				{userGoals && (
 					<Paper p="xl" radius="md" withBorder>
 						<Stack gap="md">
 							<Title order={4}>Текущие цели</Title>
 							<Group grow>
-								<Paper p="md" radius="md" withBorder bd="1px solid #ff7428">
-									<Stack gap="xs" align="center">
+								<Paper
+									p="md"
+									radius="md"
+									withBorder
+									bd="1px solid #ff7428"
+									onClick={openCaloriesModal}
+									style={{ cursor: "pointer" }}
+								>
+									<Stack gap="0" align="center">
 										<Text size="sm" c="dimmed" fw={500}>
 											Калории
 										</Text>
+										<Divider my="3px" w="100%" />
 										<Text size="xl" fw={700} c="orange.6">
 											{userGoals.caloriesGoal}
 										</Text>
@@ -166,11 +208,19 @@ export function ProfilePage() {
 										</Text>
 									</Stack>
 								</Paper>
-								<Paper p="md" radius="md" withBorder bd="1px solid #3d7cff">
-									<Stack gap="xs" align="center">
+								<Paper
+									p="md"
+									radius="md"
+									withBorder
+									bd="1px solid #3d7cff"
+									onClick={openProteinModal}
+									style={{ cursor: "pointer" }}
+								>
+									<Stack gap="0" align="center">
 										<Text size="sm" c="dimmed" fw={500}>
 											Белок
 										</Text>
+										<Divider my="3px" w="100%" />
 										<Text size="xl" fw={700} c="blue.6">
 											{userGoals.proteinGoal}
 										</Text>
@@ -183,6 +233,62 @@ export function ProfilePage() {
 						</Stack>
 					</Paper>
 				)}
+
+				<Modal opened={caloriesModalOpened} onClose={closeCaloriesModal} withCloseButton={false}>
+					<form
+						onSubmit={(event) => {
+							event.preventDefault();
+							handleSaveCaloriesGoal();
+						}}
+					>
+						<NumberInput
+							autoFocus
+							onFocusCapture={(event) => {
+								event.currentTarget.select();
+							}}
+							label="Цель по калориям"
+							min={1}
+							value={caloriesGoal}
+							onChange={setCaloriesGoal}
+							styles={{
+								label: { color: "#ff7428", marginBottom: "0.5rem" },
+							}}
+						/>
+						<Group justify="flex-end" mt="md">
+							<Button type="submit" onClick={handleSaveCaloriesGoal}>
+								Сохранить
+							</Button>
+						</Group>
+					</form>
+				</Modal>
+
+				<Modal opened={proteinModalOpened} onClose={closeProteinModal} withCloseButton={false}>
+					<form
+						onSubmit={(event) => {
+							event.preventDefault();
+							handleSaveProteinGoal();
+						}}
+					>
+						<NumberInput
+							autoFocus
+							onFocusCapture={(event) => {
+								event.currentTarget.select();
+							}}
+							label="Цель по белку (г)"
+							min={1}
+							value={proteinGoal}
+							onChange={setProteinGoal}
+							styles={{
+								label: { color: "#3d7cff", marginBottom: "0.5rem" },
+							}}
+						/>
+						<Group justify="flex-end" mt="md">
+							<Button type="submit" onClick={handleSaveProteinGoal}>
+								Сохранить
+							</Button>
+						</Group>
+					</form>
+				</Modal>
 
 				{userGoals && user?.id && (
 					<CalorieCalculator

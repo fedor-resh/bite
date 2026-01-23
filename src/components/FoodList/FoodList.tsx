@@ -1,6 +1,6 @@
 import { Group, Stack, Text } from "@mantine/core";
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
-import { foodKeys } from "../../api/foodQueries";
+import { foodKeys } from "../../api/foodKey";
 import { FoodItem } from "./FoodItem";
 import { FoodItemLoader } from "./FoodItemLoader";
 import type { FoodItem as FoodItemType } from "./types";

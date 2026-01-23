@@ -18,11 +18,11 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@mantine/core": "^7.12.2",
-		"@mantine/dates": "^7.12.2",
+		"@mantine/core": "^8.3.6",
+		"@mantine/dates": "^8.3.6",
 		"@mantine/form": "^8.3.6",
-		"@mantine/hooks": "^7.12.2",
-		"@mantine/notifications": "^7.12.2",
+		"@mantine/hooks": "^8.3.6",
+		"@mantine/notifications": "^8.3.6",
 		"@supabase/supabase-js": "^2.45.4",
 		"@tabler/icons-react": "^3.17.0",
 		"@tanstack/query-async-storage-persister": "^5.90.9",

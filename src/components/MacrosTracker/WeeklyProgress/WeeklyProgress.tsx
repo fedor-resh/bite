@@ -1,4 +1,4 @@
-import { ActionIcon, Group } from "@mantine/core";
+import { ActionIcon, Box, Group } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import { getMondayOfWeek, useGetWeeklyFoodsQuery } from "../../../api/foodQueries";
@@ -6,6 +6,7 @@ import { useDateStore } from "../../../stores/dateStore";
 import { getFormattedDate } from "../../../utils/dateUtils";
 import { DayMiniGraph } from "./DayMiniGraph";
 import type { DayProgress } from "./types";
+import styles from "./WeeklyProgress.module.css";
 
 export interface WeeklyProgressProps {
 	caloriesGoal?: number;
@@ -127,34 +128,36 @@ export function WeeklyProgress({ caloriesGoal = 3000, proteinGoal = 150 }: Weekl
 	};
 
 	return (
-		<Group gap={0} align="center" justify="space-between" wrap="nowrap">
-			<ActionIcon
-				variant="subtle"
-				c="dark.4"
-				aria-label="Предыдущая неделя"
-				onClick={() => handleWeekChange(-1)}
-				size="md"
-				mx={-5}
-			>
-				<IconChevronLeft size={18} />
-			</ActionIcon>
+		<Box className={styles.margin}>
+			<Group gap={0} align="center" justify="space-between" wrap="nowrap">
+				<ActionIcon
+					variant="subtle"
+					c="dark.4"
+					aria-label="Предыдущая неделя"
+					onClick={() => handleWeekChange(-1)}
+					size="md"
+					mx={-5}
+				>
+					<IconChevronLeft size={18} />
+				</ActionIcon>
 
-			<Group gap={0} justify="space-between" style={{ flex: 1 }} wrap="nowrap">
-				{weekDays.map((dayData) => (
-					<DayMiniGraph key={dayData.date} {...dayData} />
-				))}
+				<Group gap={0} justify="space-between" style={{ flex: 1 }} wrap="nowrap">
+					{weekDays.map((dayData) => (
+						<DayMiniGraph key={dayData.date} {...dayData} />
+					))}
+				</Group>
+
+				<ActionIcon
+					variant="subtle"
+					c="dark.4"
+					aria-label="Следующая неделя"
+					onClick={() => handleWeekChange(1)}
+					size="md"
+					mx={-5}
+				>
+					<IconChevronRight size={18} />
+				</ActionIcon>
 			</Group>
-
-			<ActionIcon
-				variant="subtle"
-				c="dark.4"
-				aria-label="Следующая неделя"
-				onClick={() => handleWeekChange(1)}
-				size="md"
-				mx={-5}
-			>
-				<IconChevronRight size={18} />
-			</ActionIcon>
-		</Group>
+		</Box>
 	);
 }

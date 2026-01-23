@@ -1,0 +1,7 @@
+@media (min-width: 355px) and (max-width: 360px) {
+	.margin {
+		width: 100%;
+		margin-left: -6px;
+		margin-right: -24px;
+	}
+}

@@ -27,6 +27,8 @@ export function ProductDrawer() {
 	const selectedDate = useDateStore((state) => state.selectedDate);
 	const navigate = useNavigate();
 
+	const hasProduct = !!product;
+
 	const { mutate: addFood, isPending: isAdding } = useAddFoodMutation();
 	const { mutate: updateFood, isPending: isUpdating } = useUpdateFoodMutation();
 	const { mutate: deleteFood, isPending: isDeleting } = useDeleteFoodMutation();
@@ -142,7 +144,11 @@ export function ProductDrawer() {
 	}
 
 	return (
-		<AboveKeyboardWrapper bottomOffset={16} autoFocus focusSelector='input[name="value"]'>
+		<AboveKeyboardWrapper
+			bottomOffset={16}
+			autoFocus
+			focusSelector={hasProduct ? 'input[name="value"]' : 'input[name="name"]'}
+		>
 			<div
 				style={{
 					width: "100%",
@@ -163,6 +169,7 @@ export function ProductDrawer() {
 					}}
 				>
 					<TextInput
+						name="name"
 						placeholder="Название продукта"
 						{...form.getInputProps("name")}
 						style={{ flex: 1, minWidth: 0 }}
