@@ -12,8 +12,24 @@ export function AddProductSearchPage() {
 	const [query, setQuery] = useState("");
 	const { data: foodsHistory = [], isLoading: isLoadingHistory } = useGetFoodsHistoryQuery(
 		query,
-		query.trim() ? 2 : 10,
+		10,
 	);
+
+	
+	const foodsHistoryUnique = useMemo<FoodItem[]>(() => {
+		function getUniqueBy<T>(array: T[], ...keys: (keyof T)[]): T[] {
+			return [
+				...new Map(
+					array.map((item) => {
+						const compositeKey = keys.map((key) => item[key]).join("|");
+						return [compositeKey, item];
+					}),
+				).values(),
+			];
+		}
+		return getUniqueBy(foodsHistory, "kcalories", "protein");
+	}, [foodsHistory]);
+
 	const { data: productsData = [], isLoading: isLoadingProducts } = useSearchProductsQuery(
 		query,
 		20,
@@ -28,7 +44,7 @@ export function AddProductSearchPage() {
 	// Combine results from eaten_products and products
 	const searchResults = useMemo((): FoodItem[] => {
 		// Convert eaten products to SearchResult
-		const eatenResults = foodsHistory.map((item) => ({
+		const eatenResults = foodsHistoryUnique.map((item) => ({
 			...item,
 			value: item.value ?? 100,
 			badges: (
@@ -37,9 +53,8 @@ export function AddProductSearchPage() {
 				</Badge>
 			),
 		}));
-
 		return [...eatenResults, ...productsData];
-	}, [foodsHistory, productsData]);
+	}, [productsData, foodsHistoryUnique]);
 
 	const handleSelectProduct = (product: FoodItem) => {
 		openForAdd(product);
