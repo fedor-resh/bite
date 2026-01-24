@@ -166,20 +166,14 @@ export function ProfilePage() {
 					</Group>
 				</Paper>
 
-				<Paper p="xl" radius="md" withBorder>
-					<Stack gap="md">
+				<Paper pt="xl" px="xl" pb="md" radius="md" withBorder >
 						<Title order={4}>Средняя дневная калорийность за период</Title>
-
-						<Card p="0" withBorder>
 							<CalendarForAverageDailyCalories />
 							<Center>
-								<Text fw={600} size="lg" c="orange.6">
+								<Text fw={600} size="lg" c="orange.6" >
 									{meanCaloriesInterval} ккал
 								</Text>
 							</Center>
-							<div style={{ height: "10px" }}></div>
-						</Card>
-					</Stack>
 				</Paper>
 
 				{userGoals && (

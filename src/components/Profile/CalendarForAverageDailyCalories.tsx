@@ -20,10 +20,13 @@ export default function CalendarForAverageDailyCalories() {
 		const [fromStr, toStr] = value;
 		setDatesFromTo([fromStr ? new Date(fromStr) : null, toStr ? new Date(toStr) : null]);
 	};
-
+	
 	return (
-		<Card p="sm">
-			<Center>
+		<Card
+		p={'md'}
+		ml={-30}
+        mr={-30}>
+			<Center >
 				<ActionIcon
 					variant="subtle"
 					c="dark.4"
@@ -34,6 +37,7 @@ export default function CalendarForAverageDailyCalories() {
 					<IconChevronLeft size={18} />
 				</ActionIcon>
 				<DatePickerInput
+				    
 					value={datesFromTo}
 					onChange={handleDateRangeChange}
 					type="range"
@@ -41,6 +45,7 @@ export default function CalendarForAverageDailyCalories() {
 					placeholder="Выберите интервал"
 					locale="ru"
 					valueFormat="DD.MM.YYYY"
+					
 				/>
 				<ActionIcon
 					variant="subtle"
