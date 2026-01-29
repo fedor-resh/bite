@@ -67,3 +67,6 @@ body {
 	animation: breatheBorder 2s ease-in-out infinite;
 	cursor: default;
 }
+.day[data-today] {
+    border: 1px solid var(--mantine-color-orange-9);
+  }

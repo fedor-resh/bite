@@ -15,20 +15,16 @@ export function AddProductSearchPage() {
 		10,
 	);
 
+	function getUniqueBy<T>(array: T[], ...keys: (keyof T)[]): T[] {
+		const createPair = (item: T): [string, T] => {
+			const compositeKey = keys.map((key) => String(item[key])).join("|");
+			return [compositeKey, item];
+		};
+		
+		return [...new Map(array.map(createPair)).values()];
+	}
 	
-	const foodsHistoryUnique = useMemo<FoodItem[]>(() => {
-		function getUniqueBy<T>(array: T[], ...keys: (keyof T)[]): T[] {
-			return [
-				...new Map(
-					array.map((item) => {
-						const compositeKey = keys.map((key) => item[key]).join("|");
-						return [compositeKey, item];
-					}),
-				).values(),
-			];
-		}
-		return getUniqueBy(foodsHistory, "kcalories", "protein");
-	}, [foodsHistory]);
+	const foodsHistoryUnique = getUniqueBy(foodsHistory, "kcalories", "protein");
 
 	const { data: productsData = [], isLoading: isLoadingProducts } = useSearchProductsQuery(
 		query,

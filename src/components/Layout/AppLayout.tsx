@@ -58,6 +58,9 @@ export function AppLayout() {
 										border: "0",
 									},
 								}}
+								classNames={{
+									day: "day",
+								  }}
 							/>
 							<UnstyledButton onClick={() => navigate("/profile")}>
 								<Avatar
