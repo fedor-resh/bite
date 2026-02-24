@@ -37,7 +37,9 @@ export default function CalendarForAverageDailyCalories() {
 					<IconChevronLeft size={18} />
 				</ActionIcon>
 				<DatePickerInput
-				    
+				    classNames={{
+						day: "day",
+					  }}
 					value={datesFromTo}
 					onChange={handleDateRangeChange}
 					type="range"
