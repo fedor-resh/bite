@@ -2,7 +2,8 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import type { EatenProduct } from "@/types/types";
 import { compressImage } from "../utils/imageCompression";
-import { foodKeys, getMondayOfWeek } from "./foodQueries";
+import { getMondayOfWeek } from "./foodQueries";
+import { foodKeys } from "./foodKey";
 import { fetchWithAuthFormData } from "./queryUtils";
 
 export interface FoodAnalysis {

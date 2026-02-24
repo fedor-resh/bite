@@ -16,7 +16,8 @@ export function AppLayout() {
 
 	const handleDateChange = (date: DateValue) => {
 		if (date) {
-			const dateStr = getFormattedDate(date);
+			const dateObj = typeof date === "string" ? new Date(date) : date;
+			const dateStr = getFormattedDate(dateObj);
 			setSelectedDate(dateStr);
 		} else {
 			setSelectedDate(getFormattedDate(new Date()));
@@ -57,6 +58,9 @@ export function AppLayout() {
 										border: "0",
 									},
 								}}
+								classNames={{
+									day: "day",
+								  }}
 							/>
 							<UnstyledButton onClick={() => navigate("/profile")}>
 								<Avatar
