@@ -1,6 +1,5 @@
 import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getSupabasePublicUrl } from "./config.ts";
 
 const MAX_FILE_SIZE = 200 * 1024; // 200KB in bytes
 const INITIAL_QUALITY = 85;
@@ -99,7 +98,9 @@ export async function uploadImage(
 	return { error: null };
 }
 
-export function getPublicUrl(_supabaseClient: SupabaseClient, fullPath: string): string {
-	const publicBaseUrl = getSupabasePublicUrl();
-	return `${publicBaseUrl}/storage/v1/object/public/images/${fullPath}`;
+export function getPublicUrl(supabaseClient: SupabaseClient, fullPath: string): string {
+	const {
+		data: { publicUrl },
+	} = supabaseClient.storage.from("images").getPublicUrl(fullPath);
+	return publicUrl;
 }

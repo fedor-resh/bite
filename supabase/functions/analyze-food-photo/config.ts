@@ -20,7 +20,3 @@ export function getSupabaseConfig() {
 		anonKey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
 	};
 }
-
-export function getSupabasePublicUrl(): string {
-	return Deno.env.get("SUPABASE_PUBLIC_URL") ?? Deno.env.get("SUPABASE_URL") ?? "";
-}

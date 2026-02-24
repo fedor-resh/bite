@@ -1,18 +1,19 @@
-import { createSupabaseClient, getAuthenticatedUser } from "./auth.ts";
-import { handleCorsPreflight } from "./cors.ts";
-import { insertEatenProduct, prepareEatenProductData } from "./database.ts";
-import { parseFormData, processFile } from "./file-handler.ts";
-import { analyzeFoodImage } from "./llm.ts";
-import { extractAnalysisFromResponse, validateConfidence } from "./parser.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
 	createErrorResponse,
-	createLowConfidenceResponse,
 	createSuccessResponse,
+	createLowConfidenceResponse,
 } from "./responses.ts";
-import { getPublicUrl, uploadImage } from "./storage.ts";
+import { handleCorsPreflight } from "./cors.ts";
+import { createSupabaseClient, getAuthenticatedUser } from "./auth.ts";
+import { parseFormData, processFile } from "./file-handler.ts";
+import { uploadImage, getPublicUrl } from "./storage.ts";
+import { analyzeFoodImage } from "./llm.ts";
+import { extractAnalysisFromResponse, validateConfidence } from "./parser.ts";
+import { prepareEatenProductData, insertEatenProduct } from "./database.ts";
 import type { FoodAnalysis } from "./types.ts";
 
-export default async function handler(req: Request): Promise<Response> {
+serve(async (req) => {
 	// Handle CORS preflight requests
 	if (req.method === "OPTIONS") {
 		return handleCorsPreflight();
@@ -70,4 +71,4 @@ export default async function handler(req: Request): Promise<Response> {
 	const { id: insertedId } = await insertEatenProduct(supabaseClient, dataToInsert);
 
 	return createSuccessResponse(publicUrl, fileInfo.fullPath, nutritionData, insertedId);
-}
+});
