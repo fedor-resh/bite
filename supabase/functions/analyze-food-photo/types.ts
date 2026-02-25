@@ -30,4 +30,5 @@ export interface ErrorResponse {
 	error: string;
 	publicUrl?: string;
 	analysis?: FoodAnalysis;
+	insertedId?: number;
 }

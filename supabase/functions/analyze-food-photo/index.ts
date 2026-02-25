@@ -59,16 +59,13 @@ serve(async (req) => {
 		);
 	}
 
-	// Validate confidence level
-	console.log("Validating confidence level", nutritionData);
-	if (!validateConfidence(nutritionData)) {
-		return createLowConfidenceResponse(publicUrl, nutritionData);
-	}
-
-	// Insert nutrition data into database
+	// Insert nutrition data into database regardless of confidence
 	const dataToInsert = prepareEatenProductData(nutritionData, user.id, publicUrl, date);
-
 	const { id: insertedId } = await insertEatenProduct(supabaseClient, dataToInsert);
+
+	if (!validateConfidence(nutritionData)) {
+		return createLowConfidenceResponse(publicUrl, nutritionData, insertedId);
+	}
 
 	return createSuccessResponse(publicUrl, fileInfo.fullPath, nutritionData, insertedId);
 });
