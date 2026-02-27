@@ -1,18 +1,11 @@
 import { createCorsResponse } from "./cors.ts";
-import type { AnalysisResponse, ErrorResponse, FoodAnalysis } from "./types.ts";
+import type { ErrorResponse, PendingAnalysisResponse } from "./types.ts";
 
-export function createSuccessResponse(
-	publicUrl: string,
-	filePath: string,
-	analysis: FoodAnalysis,
-	insertedId?: number,
-): Response {
-	const response: AnalysisResponse = {
-		success: true,
-		publicUrl,
-		filePath,
-		analysis,
-		insertedId,
+export function createPendingResponse(id: number, imageUrl: string): Response {
+	const response: PendingAnalysisResponse = {
+		id,
+		status: "pending",
+		imageUrl,
 	};
 	return createCorsResponse(JSON.stringify(response), 200);
 }
@@ -20,27 +13,15 @@ export function createSuccessResponse(
 export function createErrorResponse(
 	error: string,
 	status = 500,
-	publicUrl?: string,
-	analysis?: FoodAnalysis,
-	insertedId?: number,
+	id?: number,
+	imageUrl?: string,
 ): Response {
-	const response: ErrorResponse = { error };
-	if (publicUrl) response.publicUrl = publicUrl;
-	if (analysis) response.analysis = analysis;
-	if (insertedId) response.insertedId = insertedId;
+	const response: ErrorResponse = { error, status: "error" };
+	if (id) response.id = id;
+	if (imageUrl) response.imageUrl = imageUrl;
 	return createCorsResponse(JSON.stringify(response), status);
 }
 
 export function createUnauthorizedResponse(): Response {
 	return createErrorResponse("Unauthorized", 401);
-}
-
-export function createLowConfidenceResponse(publicUrl: string, analysis: FoodAnalysis, insertedId?: number): Response {
-	return createErrorResponse(
-		"Низкая точность анализа. Пожалуйста, попробуйте снова с более четким фото.",
-		422,
-		publicUrl,
-		analysis,
-		insertedId,
-	);
 }

@@ -7,28 +7,29 @@ export interface FoodAnalysis {
 	raw_response?: string;
 }
 
+export type AnalysisStatus = "pending" | "completed" | "error";
+
 export interface EatenProductInsert {
 	name: string;
 	unit: string;
 	date: string;
 	userId: string;
 	imageUrl: string;
+	status: AnalysisStatus;
 	kcalories?: number;
 	protein?: number;
 	value?: number;
 }
 
-export interface AnalysisResponse {
-	success: boolean;
-	publicUrl: string;
-	filePath: string;
-	analysis: FoodAnalysis;
-	insertedId?: number;
+export interface PendingAnalysisResponse {
+	id: number;
+	status: "pending";
+	imageUrl: string;
 }
 
 export interface ErrorResponse {
 	error: string;
-	publicUrl?: string;
-	analysis?: FoodAnalysis;
-	insertedId?: number;
+	id?: number;
+	imageUrl?: string;
+	status?: AnalysisStatus;
 }

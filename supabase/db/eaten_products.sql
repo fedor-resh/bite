@@ -10,6 +10,7 @@ CREATE TABLE public.eaten_products (
   "userId" uuid DEFAULT gen_random_uuid(),
   name text NOT NULL DEFAULT 'Продукт'::text,
   "imageUrl" text,
+  status text NOT NULL DEFAULT 'completed'::text,
   CONSTRAINT eaten_products_pkey PRIMARY KEY (id),
   CONSTRAINT eaten_products_user_id_fkey FOREIGN KEY ("userId") REFERENCES auth.users(id)
 );
@@ -38,4 +39,3 @@ CREATE POLICY "Enable delete for users based on user_id"
   ON public.eaten_products
   FOR DELETE
   USING (auth.uid() = "userId");
-

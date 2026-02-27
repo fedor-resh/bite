@@ -2,26 +2,17 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import type { EatenProduct } from "@/types/types";
 import { compressImage } from "../utils/imageCompression";
+import { trackPendingAnalysis } from "./photoAnalysisTracker";
 import { getMondayOfWeek } from "./foodQueries";
 import { foodKeys } from "./foodKey";
 import { fetchWithAuthFormData } from "./queryUtils";
 
-export interface FoodAnalysis {
-	food_name: string;
-	calories: number;
-	protein: number;
-	carbs: number;
-	fats: number;
-	weight: number;
-	confidence: "low" | "medium" | "high";
-	raw_response?: string;
-}
+export type PhotoAnalysisStatus = "pending" | "completed" | "error";
 
 export interface UploadPhotoResponse {
-	success: boolean;
-	publicUrl: string;
-	filePath: string;
-	analysis: FoodAnalysis;
+	id: number;
+	status: PhotoAnalysisStatus;
+	imageUrl: string;
 }
 
 export interface UploadPhotoPayload {
@@ -49,16 +40,15 @@ export function useUploadPhotoMutation() {
 		onMutate: async ({ date, file }) => {
 			const monday = getMondayOfWeek(date);
 
-			// Create a temporary URL for the image preview
 			const imagePreviewUrl = URL.createObjectURL(file);
 
-			// Create a temporary loading item with image
 			const loadingItem: Partial<EatenProduct> = {
 				id: -Date.now(),
-				name: "Анализируем фото...",
-				date: date,
+				name: "Фото загружено, анализируем...",
+				date,
 				imageUrl: imagePreviewUrl,
 				createdAt: new Date().toISOString(),
+				status: "pending",
 			};
 
 			queryClient.setQueryData(foodKeys.weeklyFoods(monday), (old: EatenProduct[] = []) => {
@@ -67,7 +57,8 @@ export function useUploadPhotoMutation() {
 
 			return { monday, imagePreviewUrl };
 		},
-		onSuccess: () => {
+		onSuccess: (data) => {
+			trackPendingAnalysis(data.id);
 			queryClient.invalidateQueries({
 				queryKey: foodKeys.all,
 			});

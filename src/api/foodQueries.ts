@@ -1,9 +1,13 @@
+import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { queryClient as appQueryClient } from "../lib/queryClient";
 import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../stores/authStore";
 import type { EatenProduct, InsertEatenProduct } from "../types/types";
 import { getFormattedDate } from "../utils/dateUtils";
 import { foodKeys } from "./foodKey";
+import { isPendingAnalysis, untrackPendingAnalysis } from "./photoAnalysisTracker";
 import { foodService } from "./services/foodService";
 
 export function useGetFoodsInRangeQuery(from: Date | null, to: Date | null) {
@@ -122,6 +126,66 @@ export function useSearchProductsQuery(query: string, limit = 20) {
 		enabled: query.trim().length > 0,
 		staleTime: 1000 * 60 * 10, // 10 minutes
 	});
+}
+
+export function useEatenProductsRealtime() {
+	const userId = useAuthStore((state) => state.user?.id);
+
+	useEffect(() => {
+		if (!userId) {
+			return;
+		}
+
+		const channel = supabase
+			.channel(`eaten-products-${userId}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "UPDATE",
+					schema: "public",
+					table: "eaten_products",
+					filter: `userId=eq.${userId}`,
+				},
+				(payload) => {
+					const current = payload.new as EatenProduct;
+					if (current.status !== "completed" && current.status !== "error") {
+						return;
+					}
+
+					void appQueryClient.invalidateQueries({ queryKey: foodKeys.all });
+
+					if (current.status === "completed") {
+						if (!isPendingAnalysis(current.id)) {
+							return;
+						}
+						untrackPendingAnalysis(current.id);
+						notifications.show({
+							title: "Фото проанализировано",
+							message: `Добавлен продукт: ${current.name}`,
+							color: "green",
+						});
+						return;
+					}
+
+					if (current.status === "error") {
+						if (!isPendingAnalysis(current.id)) {
+							return;
+						}
+						untrackPendingAnalysis(current.id);
+						notifications.show({
+							title: "Ошибка анализа",
+							message: "Не удалось распознать фото. Попробуйте еще раз.",
+							color: "red",
+						});
+					}
+				},
+			)
+			.subscribe();
+
+		return () => {
+			void supabase.removeChannel(channel);
+		};
+	}, [userId]);
 }
 
 // Mutations

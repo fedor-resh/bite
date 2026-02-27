@@ -15,6 +15,7 @@ export type Database = {
           kcalories: number | null
           name: string
           protein: number | null
+          status: "pending" | "completed" | "error"
           unit: string | null
           userId: string | null
           value: number | null
@@ -27,6 +28,7 @@ export type Database = {
           kcalories?: number | null
           name?: string
           protein?: number | null
+          status?: "pending" | "completed" | "error"
           unit?: string | null
           userId?: string | null
           value?: number | null
@@ -39,6 +41,7 @@ export type Database = {
           kcalories?: number | null
           name?: string
           protein?: number | null
+          status?: "pending" | "completed" | "error"
           unit?: string | null
           userId?: string | null
           value?: number | null
