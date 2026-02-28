@@ -36,11 +36,11 @@ export function AddProductFAB() {
 				date: selectedDate,
 			},
 			{
-				onSuccess: (result) => {
+				onSuccess: () => {
 					notifications.show({
 						title: "Успешно",
-						message: `Фото проанализировано: ${result.analysis.food_name}`,
-						color: "green",
+						message: "Фото загружено, анализируем...",
+						color: "blue",
 					});
 				},
 				onError: (error) => {
@@ -82,7 +82,7 @@ export function AddProductFAB() {
 						<IconPlus size={24} stroke={2} />
 					</ActionIcon>
 				</Paper>
-				
+
 				<TextInput
 					readOnly
 					placeholder="Поиск продуктов..."

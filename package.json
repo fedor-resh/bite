@@ -9,7 +9,6 @@
 		"preview": "vite preview",
 		"test": "vitest",
 		"deploy:functions": "supabase functions deploy",
-		"deploy:function": "supabase functions deploy",
 		"gen:types": "npx supabase gen types typescript --project-id gwhqshlpglptxsexagcz --schema public > src/types/database.types.ts",
 		"supabase:start": "supabase start",
 		"supabase:stop": "supabase stop",

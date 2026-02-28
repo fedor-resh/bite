@@ -55,11 +55,11 @@ export function AddProductPage() {
 				date: selectedDate,
 			},
 			{
-				onSuccess: (result) => {
+				onSuccess: () => {
 					notifications.show({
 						title: "Успешно",
-						message: `Фото проанализировано: ${result.analysis.food_name}`,
-						color: "green",
+						message: "Фото загружено, анализируем...",
+						color: "blue",
 					});
 				},
 				onError: (err) => {

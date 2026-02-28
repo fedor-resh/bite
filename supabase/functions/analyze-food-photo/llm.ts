@@ -11,7 +11,7 @@ const LLM_PROMPT = `Analyze this food image and provide nutritional information 
 
 Only respond with valid JSON, no additional text.`;
 
-export async function analyzeFoodImage(dataUrl: string): Promise<Response> {
+export async function analyzeFoodImage(imageUrl: string): Promise<Response> {
 	const openRouterApiKey = getOpenRouterApiKey();
 	const siteUrl = getSiteUrl();
 	const siteName = getSiteName();
@@ -37,7 +37,7 @@ export async function analyzeFoodImage(dataUrl: string): Promise<Response> {
 						{
 							type: "image_url",
 							image_url: {
-								url: dataUrl,
+								url: imageUrl,
 							},
 						},
 					],
