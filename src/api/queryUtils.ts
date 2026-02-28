@@ -36,9 +36,11 @@ export async function fetchWithAuth<T>(
 		// Get the Supabase URL
 		const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-		// Merge headers with authorization
+		const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 		const headers = new Headers(options.headers);
 		headers.set("Authorization", `Bearer ${session.access_token}`);
+		headers.set("apikey", supabaseAnonKey);
 
 		// Call the edge function
 		const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {

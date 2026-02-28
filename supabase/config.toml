@@ -331,6 +331,7 @@ deno_version = 2
 
 [functions.analyze-food-photo]
 enabled = true
+verify_jwt = false
 
 [analytics]
 enabled = true
