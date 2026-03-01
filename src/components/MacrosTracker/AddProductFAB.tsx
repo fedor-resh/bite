@@ -35,15 +35,8 @@ export function AddProductFAB() {
 				file,
 				date: selectedDate,
 			},
-			{
-				onSuccess: () => {
-					notifications.show({
-						title: "Успешно",
-						message: "Фото загружено, анализируем...",
-						color: "blue",
-					});
-				},
-				onError: (error) => {
+		{
+			onError: (error) => {
 					const message = error instanceof Error ? error.message : "Не удалось загрузить фото";
 					notifications.show({ title: "Ошибка", message, color: "red" });
 				},
