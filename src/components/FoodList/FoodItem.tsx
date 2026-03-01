@@ -18,7 +18,7 @@ export interface FoodItemProps {
 export function FoodItem({ item, index, onItemClick }: FoodItemProps) {
 	const cardRef = useRef<HTMLDivElement>(null);
 	const [cardHeight, setCardHeight] = useState<number>(0);
-	const isLoading = item.name === "Анализируем фото...";
+	const isLoading = item.status === "pending";
 
 	useLayoutEffect(() => {
 		if (cardRef.current) {
@@ -41,7 +41,7 @@ export function FoodItem({ item, index, onItemClick }: FoodItemProps) {
 		>
 			<Group gap="md" justify="space-between" align="start" wrap="nowrap">
 				<Stack gap={5}>
-					{isLoading ? <LoadingText text="Анализируем фото" /> : <Text fw={550}>{item.name}</Text>}
+					{isLoading ? <LoadingText text="Анализируем фото" /> : <Text fw={550} lineClamp={2}>{item.name}</Text>}
 					<Group gap="md">
 						{isLoading ? (
 							<>
