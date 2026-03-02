@@ -25,7 +25,7 @@ export async function analyzeFoodImage(imageUrl: string): Promise<Response> {
 			"X-Title": siteName,
 		},
 		body: JSON.stringify({
-			model: "google/gemini-2.5-flash-lite",
+			model: "google/gemini-3-flash",
 			messages: [
 				{
 					role: "user",
