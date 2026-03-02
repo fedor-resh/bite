@@ -92,7 +92,7 @@ export function DayMiniGraph({
 		</Stack>
 	);
 
-	const isSmall = useMediaQuery("(max-width: 360px)");
+	const isSmall = useMediaQuery("(max-width: 355px)");
 	const size = isSmall ? "lg" : "xl";
 
 	return (

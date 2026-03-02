@@ -1,13 +1,11 @@
 import { ActionIcon, Button, NumberInput, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconTrash, IconX } from "@tabler/icons-react";
-import { useEffect } from "react";
+import { notifications } from "@mantine/notifications";
+import { IconPhoto, IconTrash, IconX } from "@tabler/icons-react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-	useAddFoodMutation,
-	useDeleteFoodMutation,
-	useUpdateFoodMutation,
-} from "../../api/foodQueries";
+import { useAddFoodMutation, useDeleteFoodMutation, useUpdateFoodMutation } from "../../api/foodQueries";
+import { useUploadPhotoMutation } from "../../api/photoQueries";
 import { useAuthStore } from "../../stores/authStore";
 import { useDateStore } from "../../stores/dateStore";
 import { useProductDrawerStore } from "../../stores/productDrawerStore";
@@ -26,6 +24,8 @@ export function ProductDrawer() {
 	const user = useAuthStore((state) => state.user);
 	const selectedDate = useDateStore((state) => state.selectedDate);
 	const navigate = useNavigate();
+	const uploadPhotoMutation = useUploadPhotoMutation();
+	const galleryInputRef = useRef<HTMLInputElement>(null);
 
 	const hasProduct = !!product;
 
@@ -139,6 +139,36 @@ export function ProductDrawer() {
 		close();
 	};
 
+	const handleGalleryClick = () => {
+		galleryInputRef.current?.click();
+	};
+
+	const handleGalleryFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		// Закрываем дравер сразу после выбора фото
+		handleClose();
+
+		uploadPhotoMutation.mutate(
+			{
+				file,
+				date: selectedDate ?? getFormattedDate(),
+			},
+			{
+				onError: (error) => {
+					const message = error instanceof Error ? error.message : "Не удалось загрузить фото";
+					notifications.show({ title: "Ошибка", message, color: "red" });
+				},
+				onSettled: () => {
+					if (galleryInputRef.current) {
+						galleryInputRef.current.value = "";
+					}
+				},
+			},
+		);
+	};
+
 	if (!opened) {
 		return null;
 	}
@@ -174,6 +204,18 @@ export function ProductDrawer() {
 						{...form.getInputProps("name")}
 						style={{ flex: 1, minWidth: 0 }}
 					/>
+
+					{!product?.id && (
+						<ActionIcon
+							variant="subtle"
+							color="gray"
+							aria-label="Добавить из фото"
+							onClick={handleGalleryClick}
+						>
+							<IconPhoto size={18} />
+						</ActionIcon>
+					)}
+
 					{mode === "edit" && (
 						<ActionIcon
 							variant="subtle"
@@ -272,6 +314,14 @@ export function ProductDrawer() {
 						</Button>
 					</div>
 				</form>
+
+				<input
+					ref={galleryInputRef}
+					type="file"
+					accept="image/*"
+					onChange={handleGalleryFileSelect}
+					style={{ display: "none" }}
+				/>
 			</div>
 		</AboveKeyboardWrapper>
 	);
